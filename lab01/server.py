@@ -1,7 +1,7 @@
-import os
 import argparse
 import socket
-import select
+import time
+import threading
 from datetime import datetime
 
 class Config:
@@ -34,10 +34,17 @@ class Client:
         self._data = []
 
     @property
+    def address(self):
+        return self._address
+
+    @property
     def last_access(self):
-        self._last_access = datetime.now()
         return self._last_access
     
+    @last_access.setter
+    def last_access(self, time):
+        self._last_access = time
+
     @property
     def expected_size(self):
         return self._expected_size
@@ -73,9 +80,11 @@ class Server:
         self.socket.bind(('', self.config.port,))
         print(self.socket.getsockname())
         self.clients: dict = {}
-        self.buf_size = 1024
+        self.buf_size = 4096
     
     def start_loop(self):
+        daemon = threading.Thread(target=self._remove_timeouted_clients, daemon=True)
+        daemon.start()
         while True:
             packet = self.socket.recvfrom(self.buf_size)
             address = packet[1]
@@ -83,6 +92,16 @@ class Server:
             if len(b''.join(self.clients[address].data)) >= self.clients[address].expected_size:
                 self._save_file(address)
     
+    def _remove_timeouted_clients(self):
+        while True:
+            keys = list(map(lambda x: x[1].address, self.clients.items()))
+            for key in keys:
+                delta = (datetime.now() - self.clients[key].last_access).seconds
+                if delta >= 3:
+                    del self.clients[key]
+                    print(f'The {key} user is outdated. Removed.')
+            time.sleep(1)
+
     def _save_file(self, address):
         with open(self.clients[address].filename, 'wb') as f:
             for chunk in self.clients[address].data:
@@ -98,7 +117,7 @@ class Server:
             self.clients[address] = Client(address, filename, int(total_size), int(seqno))
             self._send_start_ack(address)
         elif data[0].startswith(b'd'):
-            self.clients[address].last_access
+            self.clients[address].last_access = datetime.now()
             prefix, seqno, data_bytes = data
             seqno = int(seqno.decode())
             print(f'Got new data message from {address} with seqno {seqno}')
