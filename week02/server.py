@@ -19,7 +19,6 @@ def worker(queue):
                 ans.append(res)
             client_sock.sendall('\n'.join(ans).encode())
             print(f'{addr} is disconnected')
-        queue.task_done() # decrease counter
             
 
 def is_prime(n: int) -> bool:
