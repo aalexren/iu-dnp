@@ -2,7 +2,7 @@ from multiprocessing import Queue
 
 import socket
 import threading
-import sys, time
+import sys
 
 
 def worker(queue):
