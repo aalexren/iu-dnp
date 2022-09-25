@@ -1,6 +1,9 @@
 """
 To generate protobuf classes for gRPC use this command:
+python -m grpc_tools.protoc service.proto --proto_path=. --python_out=. --grpc_python_out=.
 
+@author: Artem Chernitsa
+@contact: a.chernitsa@innopolis.university
 """
 
 
