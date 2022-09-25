@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+service UnicornService {
+    rpc ReverseText(TextReq) returns (TextRep) {}
+    rpc SplitText(SplitTextReq) returns (SplitTextRep) {}
+    rpc IsPrime(stream NumberReq) returns (stream NumberRep) {}
+}
+
+message TextReq {
+    string data = 1;
+}
+
+message TextRep {
+    string data = 1;
+}
+
+message SplitTextReq {
+    string data = 1;
+    string delim = 2;
+}
+
+message SplitTextRep {
+    uint32 count = 1;
+    repeated string chunk = 2;
+}
+
+message NumberReq {
+    uint32 number = 1;
+}
+
+message NumberRep {
+    string answer = 1;
+}
