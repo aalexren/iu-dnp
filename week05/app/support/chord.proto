@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // Methods for the Register, Node and Client entities.
-service HashTableService {
+service RegisterService {
 
     // Invoked by Node to Register itself with given ip address 
     // and port. Returns registered id and m, where 
@@ -17,7 +17,9 @@ service HashTableService {
     
     // Share to Client list of all existing nodes in the chord ring.
     rpc GetChordInfo(ChordRingInfoRequest) returns (ChordRingInfoResponse);
+}
 
+service NodeService {
     // Client call Node to get finger table of this Node.
     rpc GetFingerTable(GetFingerTableRequest) returns (GetFingerTableResponse);
 
@@ -36,7 +38,6 @@ service HashTableService {
     // on called Node using lookup.
     rpc Find(FindRequest) returns (FindResponse);
 }
-
 
 message NodeAddress {
     string ip = 1;
