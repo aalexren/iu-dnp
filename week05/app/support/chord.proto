@@ -13,7 +13,7 @@ service HashTableService {
 
     // Share list of all neighbours and predecessor
     // to node with given id.
-    rpc PopulateFingerTable(PopulateFingerTableRequest) returns (NodePopulateFingerTableResponse);
+    rpc PopulateFingerTable(PopulateFingerTableRequest) returns (PopulateFingerTableResponse);
     
     // Share to Client list of all existing nodes in the chord ring.
     rpc GetChordInfo(ChordRingInfoRequest) returns (ChordRingInfoResponse);
@@ -65,7 +65,7 @@ message DeregisterNodeResponse {
 
     // True if deregistered,
     // False otherwise.
-    boolean is_deregistered = 1;
+    bool is_deregistered = 1;
 }
 
 message PopulateFingerTableRequest {
@@ -101,7 +101,7 @@ message GetFingerTableResponse {
 
     // Finger table of a Node.
     // id and corresponding address
-    map<unit32, NodeAddress> neighbours = 1;
+    map<uint32, NodeAddress> neighbours = 1;
 }
 
 message SaveRequest {
@@ -118,7 +118,7 @@ message SaveRequest {
 message SaveResponse {
 
     // True if was saved.
-    boolean is_saved = 1;
+    bool is_saved = 1;
 
     // Node's id where key was saved on.
     uint32 node_id = 2;
@@ -135,7 +135,7 @@ message RemoveRequest {
 message RemoveResponse {
 
     // True if was deleted.
-    boolean is_deleted = 1;
+    bool is_deleted = 1;
 
     // Node's id from where a key was removed.
     uint32 node_id = 2;
@@ -152,7 +152,7 @@ message FindResponse {
 
     // True if founded,
     // False otherwise.
-    boolean is_founded = 1;
+    bool is_founded = 1;
 
     // Node's id where key was found on.
     uint32 node_id = 2;
