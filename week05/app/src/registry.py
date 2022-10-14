@@ -1,8 +1,10 @@
 from app.support import chord_pb2_grpc
 from app.support import chord_pb2
 
+
 import logging
 log = logging.getLogger(__name__)
+
 
 class Register(chord_pb2_grpc.RegisterServiceServicer):
     
