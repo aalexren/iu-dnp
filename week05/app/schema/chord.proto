@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-// Methods for the Register, Node and Client entities.
+// Methods for the Register to communicate with 
+// Node and Client entities.
 service RegisterService {
 
     // Invoked by Node to Register itself with given ip address 
@@ -19,7 +20,10 @@ service RegisterService {
     rpc GetChordInfo(ChordRingInfoRequest) returns (ChordRingInfoResponse);
 }
 
+// Methods for the Node to communicate with 
+// Register and Client entities.
 service NodeService {
+
     // Client call Node to get finger table of this Node.
     rpc GetFingerTable(GetFingerTableRequest) returns (GetFingerTableResponse);
 
