@@ -1,16 +1,25 @@
 import random as rnd
 from concurrent import futures
+import argparse
 
+import grpc
 import chord_pb2_grpc
 import chord_pb2
 
-from .node import NodeAddress
-
-import grpc
-
 import logging
+import logging.config
+logging.config.fileConfig('logging.conf')
 log = logging.getLogger(__name__)
 
+parser = argparse.ArgumentParser()
+parser.add_argument('address', help='<ip>:<port>', type=str)
+parser.add_argument('m', help='key size in bits', type=int)
+
+
+class NodeAddress:
+    def __init__(self, ip: str, port: int):
+        self.ip = ip
+        self.port = port
 
 class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
     
@@ -19,7 +28,9 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         self.port = port
         self.key_size = m # in bits
         self.chord_nodes: dict[int, NodeAddress]  = dict() # list of registered nodes
+        self.chord_nodes_list = [-1 for i in range(0, 2 ** m)]
         super().__init__()
+
 
     def RegisterNode(self, request, context):
         
@@ -32,6 +43,8 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             return chord_pb2.RegisterNodeResponse()
         
         self.chord_nodes[new_id] = NodeAddress(request.address.ip, request.address.port)
+        self.chord_nodes_list[new_id] = new_id
+        log.info(f'New node if registered with id {new_id}.')
 
         response = {
             'node_id': new_id,
@@ -39,10 +52,13 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         }
         return chord_pb2.RegisterNodeResponse(**response)
 
+
     def DeregisterNode(self, request, context):
         del_id = request.node_id
         if del_id in self.chord_nodes:
             del self.chord_nodes[del_id]
+            self.chord_nodes_list[del_id] = -1
+            log.info(f'Node with id {del_id} has been deregistered.')
             response = {
                 'is_deregistered': True
             }
@@ -52,31 +68,32 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         context.set_details("Node was not found!")
         return chord_pb2.DeregisteredNodeResponse()
 
+
     def PopulateFingerTable(self, request, context):
         node_id = request.node_id
 
+        fingers = self._get_finger_table(node_id)
+        finger_table = {finger: self.chord_nodes[finger] for finger in fingers}
 
-        return super().PopulateFingerTable(request, context)
+        predecessor = self._closest_preceding_node(node_id)
+        pred_address = self.chord_nodes[predecessor]
+
+        response = {
+            'pred_id': predecessor,
+            'pred_address': NodeAddress(pred_address.ip, pred_address.port),
+            'neighbours': finger_table
+        }
+
+        return chord_pb2.PopulateFingerTableResponse(**response)
     
+
     def GetChordInfo(self, request, context):
         response = {
             'neighbours': self.chord_nodes
         }
         return chord_pb2.GetChordInfoResponse(**response)
-
-    def run(self):
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        chord_pb2_grpc.add_RegisterServiceServicer_to_server(
-            RegisterServiceHandler(), server
-        )
-        server.add_insecure_port(f'[::]:{self.port}')
-        server.start()
-        try:
-            server.wait_for_termination()
-        except KeyboardInterrupt:
-            print('Shutting down...')
-
     
+
     def _get_free_id(self) -> int:
         """Generate available id for new node.
 
@@ -91,7 +108,89 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             new_id = rnd.randint(0, 2 ** self.key_size - 1)
         
         return new_id
+    
+    def _find_successor(self, node_id: int) -> int:
+        """Find first available successor in the chord.
+
+        N + 1 -> N11, but N11 is not the part of the chord, so
+        next available is N14, hence successor is N14.
+        """
+        for i in range(node_id + 1, len(self.chord_nodes_list)):
+            if self.chord_nodes_list[i] != -1:
+                return i
+        
+        for i in range(0, node_id + 1):
+            if self.chord_nodes_list[i] != -1:
+                return i
+
+    def _closest_preceding_node(self, node_id: int) -> int:
+        """Find first available predecessor in the chord
+        counter clockwise, starting from node_id - 1.
+        """
+        for i in range(node_id - 1, 0 - 1, -1):
+            if self.chord_nodes_list[i] != -1:
+                return self.chord_nodes_list[i]
+        
+        for i in range(m - 1, node_id - 1, -1):
+            if self.chord_nodes_list[i] != -1:
+                return self.chord_nodes_list[i]
+        
+
+    def _build_raw_finger_table(self, node_id) -> list[int]:
+        """Calculate finger table with supposing steps of neighbours.
+
+        N + 1 -> N11
+        N + 2 -> N12
+        N + 4 -> N14
+        N + 8 -> N18
+        etc.
+        """
+        unique = set()
+        res: list[int] = []
+        for i in range(1, self.key_size + 1):
+            successor = (node_id + 2 ** (i - 1)) % (2 ** self.key_size)
+            if successor not in unique:
+                res.append(successor)
+            unique.add(successor)
+        return res
+    
+    def _get_finger_table(self, node_id) -> list[int]:
+        """Calculate true finger table
+
+        N + 1 -> N14
+        N + 2 -> N14
+        N + 4 -> N14
+        N + 8 -> N29
+        etc.
+        """
+        raw_finger_table = self._build_raw_finger_table(node_id)
+        finger_table = []
+        for i, v in enumerate(raw_finger_table):
+            if v in self.chord_nodes:
+                finger_table.append(v)
+            else:
+                finger_table.append(self._find_successor(v))
+        
+        return finger_table
+
+
+def run(handler: RegisterServiceHandler):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    chord_pb2_grpc.add_RegisterServiceServicer_to_server(
+        handler, server
+    )
+    server.add_insecure_port(f'[::]:{handler.port}')
+    server.start()
+    try:
+        log.info(f'Server has been started...{handler.ip}:{handler.port}')
+        server.wait_for_termination()
+    except KeyboardInterrupt:
+        log.info('Shutting down...')
 
 
 if __name__ == "__main__":
-    RegisterServiceHandler("127.0.0.1", 5555, 5).run()
+    args = parser.parse_args()
+    ip, port = args.address.split(':')
+    m = args.m
+    
+    run(RegisterServiceHandler(ip, int(port), m))
