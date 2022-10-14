@@ -3,10 +3,12 @@
 import grpc
 
 import chord_pb2 as chord__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
 class RegisterServiceStub(object):
-    """Methods for the Register, Node and Client entities.
+    """Methods for the Register to communicate with 
+    Node and Client entities.
     """
 
     def __init__(self, channel):
@@ -35,10 +37,16 @@ class RegisterServiceStub(object):
                 request_serializer=chord__pb2.ChordRingInfoRequest.SerializeToString,
                 response_deserializer=chord__pb2.ChordRingInfoResponse.FromString,
                 )
+        self.GetServiceName = channel.unary_unary(
+                '/RegisterService/GetServiceName',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=chord__pb2.GetServiceNameResponse.FromString,
+                )
 
 
 class RegisterServiceServicer(object):
-    """Methods for the Register, Node and Client entities.
+    """Methods for the Register to communicate with 
+    Node and Client entities.
     """
 
     def RegisterNode(self, request, context):
@@ -72,6 +80,13 @@ class RegisterServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetServiceName(self, request, context):
+        """Default method for all services to identify type of service
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_RegisterServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -95,6 +110,11 @@ def add_RegisterServiceServicer_to_server(servicer, server):
                     request_deserializer=chord__pb2.ChordRingInfoRequest.FromString,
                     response_serializer=chord__pb2.ChordRingInfoResponse.SerializeToString,
             ),
+            'GetServiceName': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetServiceName,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=chord__pb2.GetServiceNameResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'RegisterService', rpc_method_handlers)
@@ -103,7 +123,8 @@ def add_RegisterServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class RegisterService(object):
-    """Methods for the Register, Node and Client entities.
+    """Methods for the Register to communicate with 
+    Node and Client entities.
     """
 
     @staticmethod
@@ -174,9 +195,28 @@ class RegisterService(object):
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
+    @staticmethod
+    def GetServiceName(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/RegisterService/GetServiceName',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            chord__pb2.GetServiceNameResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
 
 class NodeServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Methods for the Node to communicate with 
+    Register and Client entities.
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -204,10 +244,17 @@ class NodeServiceStub(object):
                 request_serializer=chord__pb2.FindRequest.SerializeToString,
                 response_deserializer=chord__pb2.FindResponse.FromString,
                 )
+        self.GetServiceName = channel.unary_unary(
+                '/NodeService/GetServiceName',
+                request_serializer=chord__pb2.GetServiceNameRequest.SerializeToString,
+                response_deserializer=chord__pb2.GetServiceNameResponse.FromString,
+                )
 
 
 class NodeServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Methods for the Node to communicate with 
+    Register and Client entities.
+    """
 
     def GetFingerTable(self, request, context):
         """Client call Node to get finger table of this Node.
@@ -243,6 +290,13 @@ class NodeServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetServiceName(self, request, context):
+        """Default method for all services to identify type of service
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_NodeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -266,6 +320,11 @@ def add_NodeServiceServicer_to_server(servicer, server):
                     request_deserializer=chord__pb2.FindRequest.FromString,
                     response_serializer=chord__pb2.FindResponse.SerializeToString,
             ),
+            'GetServiceName': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetServiceName,
+                    request_deserializer=chord__pb2.GetServiceNameRequest.FromString,
+                    response_serializer=chord__pb2.GetServiceNameResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'NodeService', rpc_method_handlers)
@@ -274,7 +333,9 @@ def add_NodeServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class NodeService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Methods for the Node to communicate with 
+    Register and Client entities.
+    """
 
     @staticmethod
     def GetFingerTable(request,
@@ -341,5 +402,22 @@ class NodeService(object):
         return grpc.experimental.unary_unary(request, target, '/NodeService/Find',
             chord__pb2.FindRequest.SerializeToString,
             chord__pb2.FindResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetServiceName(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/NodeService/GetServiceName',
+            chord__pb2.GetServiceNameRequest.SerializeToString,
+            chord__pb2.GetServiceNameResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

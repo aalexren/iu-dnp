@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 // Methods for the Register to communicate with 
 // Node and Client entities.
 service RegisterService {
@@ -18,6 +20,9 @@ service RegisterService {
     
     // Share to Client list of all existing nodes in the chord ring.
     rpc GetChordInfo(ChordRingInfoRequest) returns (ChordRingInfoResponse);
+
+    // Default method for all services to identify type of service
+    rpc GetServiceName(google.protobuf.Empty) returns (GetServiceNameResponse);
 }
 
 // Methods for the Node to communicate with 
@@ -41,6 +46,9 @@ service NodeService {
     // which id (target Node id) will be evaluated using key 
     // on called Node using lookup.
     rpc Find(FindRequest) returns (FindResponse);
+
+    // Default method for all services to identify type of service
+    rpc GetServiceName(google.protobuf.Empty) returns (GetServiceNameResponse);
 }
 
 message NodeAddress {
@@ -172,4 +180,10 @@ message QuitRequest {
 
 message QuitResponse {
     // TODO
+}
+
+message GetServiceNameRequest {}
+
+message GetServiceNameResponse {
+    string service_name = 1;
 }
