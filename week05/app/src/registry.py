@@ -1,3 +1,5 @@
+import random as rnd
+
 from app.support import chord_pb2_grpc
 from app.support import chord_pb2
 
@@ -6,9 +8,10 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Register(chord_pb2_grpc.RegisterServiceServicer):
+class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
     
     def RegisterNode(self, request, context):
+        self.nodes
         return super().RegisterNode(request, context)
 
     def DeregisterNode(self, request, context):

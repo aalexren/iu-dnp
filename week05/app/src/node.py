@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Node(chord_pb2_grpc.NodeServiceServicer):
+class NodeServiceHandler(chord_pb2_grpc.NodeServiceServicer):
     
     def GetFingerTable(self, request, context):
         return super().GetFingerTable(request, context)
