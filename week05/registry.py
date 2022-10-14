@@ -92,6 +92,10 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             'neighbours': self.chord_nodes
         }
         return chord_pb2.GetChordInfoResponse(**response)
+
+    def GetServiceName(self, request, context):
+        # print(f'{context.code()}, {context.details()}')
+        return chord_pb2.GetServiceNameResponse(service_name="register")
     
 
     def _get_free_id(self) -> int:

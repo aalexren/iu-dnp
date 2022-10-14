@@ -33,10 +33,28 @@ class Client:
         )
 
         # TODO different type of stubs
-        self.stub = chord_pb2_grpc.RegisterServiceStub(self.channel)
-        log.info(self.stub.__dict__)
+        # This part of code is peace of shit!!!
+        # Many thanks to GRPC developers that
+        # made a dumb documentation!
+        # You, bastards!
+        self.stub = chord_pb2_grpc.NodeServiceStub(self.channel)
+        try:
+            self.stub = chord_pb2_grpc.NodeServiceStub(self.channel)
+            self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
+        except Exception as e:
+            log.error(f'{e}; Wrong service!')
+        
+        try:
+            self.stub = chord_pb2_grpc.RegisterServiceStub(self.channel)
+            self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
+        except Exception as e:
+            log.error(f'{e}; Wrong service!')
+        
+        
+        empty = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
+        response = self.stub.GetServiceName(empty)
+        print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
 
-        log.info(f'Client connected to registry {self.host}:{self.port}')
 
     def quit(self, *args):
         raise Exception('Exit client...')
@@ -54,7 +72,6 @@ def main():
         exit(128)
     except Exception as e:
         log.debug(e)
-        exit(128)
 
 
 if __name__ == '__main__':
