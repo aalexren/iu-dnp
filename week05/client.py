@@ -10,13 +10,19 @@ logging.config.fileConfig('logging.conf')
 log = logging.getLogger(__name__)
 
 
+class ExitException(Exception):
+    pass
+
+
 class Client:
 
     def __init__(self):
         self.commands = {
             'connect': self.connect,
+            'get_info': self.get_info,
             'quit': self.quit
         }
+        self.stub = None
 
     def run_command(self, args: str):
         command, *params = args.split(maxsplit=1)
@@ -56,7 +62,7 @@ class Client:
         print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
 
 
-    def get_info(self):
+    def get_info(self, *args):
         if self.stub is None:
             raise Exception('You have to connect either to node or register first!')
         if isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
@@ -69,7 +75,7 @@ class Client:
             log.info(str(response.nodes))
 
     def quit(self, *args):
-        raise Exception('Exit client...')
+        raise ExitException('Exit client...')
 
 
 def main():
@@ -79,11 +85,14 @@ def main():
         try:
             cmd = click.prompt('', type=str, prompt_suffix='>')
             client.run_command(cmd)
-        except KeyboardInterrupt as e:
+        except click.exceptions.Abort as e:
             log.debug(e)
-            exit(128)
+            exit(0)
+        except ExitException as e:
+            log.info(e)
+            exit(0)
         except Exception as e:
-            log.debug(e)
+            log.exception(e)
 
 
 if __name__ == '__main__':
