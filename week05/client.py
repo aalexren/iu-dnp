@@ -39,6 +39,7 @@ class Client:
         """
 
         self.host, self.port = args[0].split(':')
+        print(self.host, self.port)
 
         self.channel = grpc.insecure_channel(
             f'{self.host}:{self.port}'
@@ -49,26 +50,24 @@ class Client:
         # Many thanks to GRPC developers that
         # made a dumb documentation!
         # You, bastards!
-        self.stub = chord_pb2_grpc.NodeServiceStub(self.channel)
-        try:
-            self.stub = chord_pb2_grpc.NodeServiceStub(self.channel)
-            self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
-        except Exception as e:
-            pass
-            # log.warning(f'{e}; Wrong service!')
-        
-        try:
-            self.stub = chord_pb2_grpc.RegisterServiceStub(self.channel)
-            self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
-        except Exception as e:
-            pass
-            # log.warning(f'{e}; Wrong service!')
-        
-        
-        empty = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
-        response = self.stub.GetServiceName(empty)
-        print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
 
+        stubs = [
+            chord_pb2_grpc.NodeServiceStub(self.channel),
+            chord_pb2_grpc.RegisterServiceStub(self.channel)
+        ]
+        empty = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
+        response = None
+
+        for stub in stubs:
+            try:
+                response = stub.GetServiceName(empty)
+                self.stub = stub
+                break
+            except grpc.RpcError as e:
+                # log.debug(f'{e.code()}; Wrong service!')
+                continue
+
+        print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
 
     def get_info(self, *args):
         """Node and Register applied method.
@@ -102,7 +101,7 @@ class Client:
             'key': key,
             'text': text
         }
-        response = self.stub.SaveRequest(**request)
+        response = self.stub.Save(**request)
         if response.is_saved:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
@@ -120,7 +119,7 @@ class Client:
             'key': key
         }
 
-        response = self.stub.RemoveRequest(**request)
+        response = self.stub.Remove(**request)
         if response.is_deleted:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
@@ -139,7 +138,7 @@ class Client:
             'key': key
         }
 
-        response = self.stub.FindRequest(**request)
+        response = self.stub.Find(**request)
         if response.is_found:
             print(f"{key} has been saved on Node with id #{response.node_id} \
                 with {response.node_address.ip}:{response.node_address.port}")
