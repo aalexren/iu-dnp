@@ -108,7 +108,9 @@ class Client:
             'key': key,
             'text': text
         }
-        response = self.stub.Save(**request)
+        response = self.stub.Save(
+            chord_pb2.SaveRequest(**request)
+        )
         if response.is_saved:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
@@ -127,7 +129,9 @@ class Client:
             'key': key
         }
 
-        response = self.stub.Remove(**request)
+        response = self.stub.Remove(
+            chord_pb2.RemoveRequest(**request)
+        )
         if response.is_deleted:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
@@ -146,7 +150,9 @@ class Client:
             'key': key
         }
 
-        response = self.stub.Find(**request)
+        response = self.stub.Find(
+            chord_pb2.FindRequest(**request)
+        )
         if response.is_found:
             print(f"{key} has been saved on Node with id #{response.node_id} \
                 with {response.node_address.ip}:{response.node_address.port}")
