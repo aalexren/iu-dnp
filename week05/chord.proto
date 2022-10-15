@@ -165,7 +165,7 @@ message FindResponse {
 
     // True if founded,
     // False otherwise.
-    bool is_founded = 1;
+    bool is_found = 1;
 
     // Node's id where key was found on.
     uint32 node_id = 2;
