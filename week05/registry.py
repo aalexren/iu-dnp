@@ -89,7 +89,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
 
     def GetChordInfo(self, request, context):
         response = {
-            'neighbours': self.chord_nodes
+            'nodes': self.chord_nodes
         }
         return chord_pb2.GetChordInfoResponse(**response)
 
