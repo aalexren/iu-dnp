@@ -27,12 +27,14 @@ class Client:
         }
         self.stub = None
 
+
     def run_command(self, args: str):
         command, *params = args.split(maxsplit=1)
         if command not in self.commands:
             raise ValueError('Command not found!')
         
         self.commands[command](params)
+
 
     def connect(self, args):
         """Node and Register applied method.
@@ -64,10 +66,14 @@ class Client:
                 self.stub = stub
                 break
             except grpc.RpcError as e:
+                """
+                issue: https://shorturl.at/gikov
+                """
                 # log.debug(f'{e.code()}; Wrong service!')
                 continue
 
         print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
+
 
     def get_info(self, *args):
         """Node and Register applied method.
@@ -86,6 +92,7 @@ class Client:
 
         for k, v in response.items():
             print(f'id={k} -> {v.ip}:{v.port}')
+
 
     def save(self, args):
         """Node applied method only.
@@ -106,6 +113,7 @@ class Client:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
             print(f"{response.details}")
+
 
     def remove(self, args):
         """Node applied method only.
@@ -144,6 +152,7 @@ class Client:
                 with {response.node_address.ip}:{response.node_address.port}")
         else:
             print(f"{response.details}")
+
 
     def quit(self, *args):
         raise ExitException('Exit client...')

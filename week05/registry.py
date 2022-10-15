@@ -16,13 +16,6 @@ parser.add_argument('address', help='<ip>:<port>', type=str)
 parser.add_argument('m', help='key size in bits', type=int)
 
 
-# FIXME
-# class NodeAddress(chord_pb2.NodeAddress):
-#     def __init__(self, ip: str, port: int):
-#         self.ip = ip
-#         self.port = port
-#         super().__init__(ip, port)
-
 class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
     
     def __init__(self, ip: str, port: int, m: int):
@@ -41,6 +34,14 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
 
     def RegisterNode(self, request, context):
         
+        new_node_ip = request.address.ip
+        new_node_port = request.address.port
+        for address in self.chord_nodes.values():
+            if new_node_ip == address.ip and new_node_port == address.port:
+                context.set_code(grpc.StatusCode.RESOURSE_EXHAUSTED)
+                context.set_details("Address is already in use!")
+                return chord_pb2.RegisterNodeResponse()
+
         try:
             new_id = self._get_free_id()
         except Exception as e:
@@ -48,8 +49,11 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             context.set_code(grpc.StatusCode.RESOURSE_EXHAUSTED)
             context.set_details("Chord is full!")
             return chord_pb2.RegisterNodeResponse()
-        
-        self.chord_nodes[new_id] = chord_pb2.NodeAddress(request.address.ip, request.address.port)
+
+
+        self.chord_nodes[new_id] = chord_pb2.NodeAddress(
+            ip=request.address.ip, port=request.address.port
+        )
         self.chord_nodes_list[new_id] = new_id
         log.info(f'New node if registered with id {new_id}.')
 
@@ -87,7 +91,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
 
         response = {
             'pred_id': predecessor,
-            'pred_address': chord_pb2.NodeAddress(pred_address.ip, pred_address.port),
+            'pred_address': chord_pb2.NodeAddress(ip=pred_address.ip, port=pred_address.port),
             'neighbours': finger_table
         }
 
