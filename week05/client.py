@@ -20,6 +20,9 @@ class Client:
         self.commands = {
             'connect': self.connect,
             'get_info': self.get_info,
+            'save': self.save,
+            'remove': self.remove,
+            'find': self.find,
             'quit': self.quit
         }
         self.stub = None
@@ -32,13 +35,16 @@ class Client:
         self.commands[command](params)
 
     def connect(self, args):
+        """Node and Register applied method.
+        """
+
         self.host, self.port = args[0].split(':')
 
         self.channel = grpc.insecure_channel(
             f'{self.host}:{self.port}'
         )
 
-        # TODO different type of stubs
+        # XXX different type of stubs
         # This part of code is peace of shit!!!
         # Many thanks to GRPC developers that
         # made a dumb documentation!
@@ -48,13 +54,15 @@ class Client:
             self.stub = chord_pb2_grpc.NodeServiceStub(self.channel)
             self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
         except Exception as e:
-            log.error(f'{e}; Wrong service!')
+            pass
+            # log.warning(f'{e}; Wrong service!')
         
         try:
             self.stub = chord_pb2_grpc.RegisterServiceStub(self.channel)
             self.stub.GetServiceName(chord_pb2.GetServiceNameRequest())
         except Exception as e:
-            log.error(f'{e}; Wrong service!')
+            pass
+            # log.warning(f'{e}; Wrong service!')
         
         
         empty = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
@@ -63,6 +71,9 @@ class Client:
 
 
     def get_info(self, *args):
+        """Node and Register applied method.
+        """
+
         if self.stub is None:
             raise Exception('You have to connect either to node or register first!')
         if isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
@@ -74,10 +85,66 @@ class Client:
             response = self.stub.GetChordInfo(request)
             response = response.nodes
 
-        log.info('\n')
         for k, v in response.items():
-            log.info(f'id={k} -> {v.ip}:{v.port}')
-        log.info('\n')
+            print(f'id={k} -> {v.ip}:{v.port}')
+
+    def save(self, args):
+        """Node applied method only.
+        """
+
+        if not isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
+            raise Exception('You have to connect to node first!')
+
+        key, text = args[0].split('" ', maxsplit=1)
+        key = key[1:]
+
+        request = {
+            'key': key,
+            'text': text
+        }
+        response = self.stub.SaveRequest(**request)
+        if response.is_saved:
+            print(f"{key} has been saved on Node with id #{response.node_id}")
+        else:
+            print(f"{response.details}")
+
+    def remove(self, args):
+        """Node applied method only.
+        """
+
+        if not isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
+            raise Exception('You have to connect to node first!')
+        
+        key = args[0]
+        request = {
+            'key': key
+        }
+
+        response = self.stub.RemoveRequest(**request)
+        if response.is_deleted:
+            print(f"{key} has been saved on Node with id #{response.node_id}")
+        else:
+            print(f"{response.details}")
+
+
+    def find(self, args):
+        """Node applied method only.
+        """
+
+        if not isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
+            raise Exception('You have to connect to node first!')
+        
+        key = args[0]
+        request = {
+            'key': key
+        }
+
+        response = self.stub.FindRequest(**request)
+        if response.is_found:
+            print(f"{key} has been saved on Node with id #{response.node_id} \
+                with {response.node_address.ip}:{response.node_address.port}")
+        else:
+            print(f"{response.details}")
 
     def quit(self, *args):
         raise ExitException('Exit client...')
