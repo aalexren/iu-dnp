@@ -34,7 +34,7 @@ class RegisterServiceStub(object):
                 )
         self.GetChordInfo = channel.unary_unary(
                 '/RegisterService/GetChordInfo',
-                request_serializer=chord__pb2.ChordRingInfoRequest.SerializeToString,
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=chord__pb2.ChordRingInfoResponse.FromString,
                 )
         self.GetServiceName = channel.unary_unary(
@@ -107,7 +107,7 @@ def add_RegisterServiceServicer_to_server(servicer, server):
             ),
             'GetChordInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetChordInfo,
-                    request_deserializer=chord__pb2.ChordRingInfoRequest.FromString,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=chord__pb2.ChordRingInfoResponse.SerializeToString,
             ),
             'GetServiceName': grpc.unary_unary_rpc_method_handler(
@@ -190,7 +190,7 @@ class RegisterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/RegisterService/GetChordInfo',
-            chord__pb2.ChordRingInfoRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             chord__pb2.ChordRingInfoResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -226,7 +226,7 @@ class NodeServiceStub(object):
         """
         self.GetFingerTable = channel.unary_unary(
                 '/NodeService/GetFingerTable',
-                request_serializer=chord__pb2.GetFingerTableRequest.SerializeToString,
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=chord__pb2.GetFingerTableResponse.FromString,
                 )
         self.Save = channel.unary_unary(
@@ -246,7 +246,7 @@ class NodeServiceStub(object):
                 )
         self.GetServiceName = channel.unary_unary(
                 '/NodeService/GetServiceName',
-                request_serializer=chord__pb2.GetServiceNameRequest.SerializeToString,
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=chord__pb2.GetServiceNameResponse.FromString,
                 )
 
@@ -302,7 +302,7 @@ def add_NodeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetFingerTable': grpc.unary_unary_rpc_method_handler(
                     servicer.GetFingerTable,
-                    request_deserializer=chord__pb2.GetFingerTableRequest.FromString,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=chord__pb2.GetFingerTableResponse.SerializeToString,
             ),
             'Save': grpc.unary_unary_rpc_method_handler(
@@ -322,7 +322,7 @@ def add_NodeServiceServicer_to_server(servicer, server):
             ),
             'GetServiceName': grpc.unary_unary_rpc_method_handler(
                     servicer.GetServiceName,
-                    request_deserializer=chord__pb2.GetServiceNameRequest.FromString,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=chord__pb2.GetServiceNameResponse.SerializeToString,
             ),
     }
@@ -349,7 +349,7 @@ class NodeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/NodeService/GetFingerTable',
-            chord__pb2.GetFingerTableRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             chord__pb2.GetFingerTableResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -417,7 +417,7 @@ class NodeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/NodeService/GetServiceName',
-            chord__pb2.GetServiceNameRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             chord__pb2.GetServiceNameResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

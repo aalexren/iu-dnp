@@ -21,7 +21,7 @@ class Client:
     def run_command(self, args: str):
         command, *params = args.split(maxsplit=1)
         if command not in self.commands:
-            raise Exception('Command not found!')
+            raise ValueError('Command not found!')
         
         self.commands[command](params)
 
@@ -56,6 +56,18 @@ class Client:
         print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
 
 
+    def get_info(self):
+        if self.stub is None:
+            raise Exception('You have to connect either to node or register first!')
+        if isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
+            request = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
+            response = self.stub.GetFingerTable(request)
+            log.info(str(response.neighbours))
+        elif isinstance(self.stub, chord_pb2_grpc.RegisterServiceStub):
+            request = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
+            response = self.stub.GetChordInfo(request)
+            log.info(str(response.nodes))
+
     def quit(self, *args):
         raise Exception('Exit client...')
 
@@ -63,15 +75,15 @@ class Client:
 def main():
     client = Client()
 
-    try:
-        while True:
+    while True:
+        try:
             cmd = click.prompt('', type=str, prompt_suffix='>')
             client.run_command(cmd)
-    except KeyboardInterrupt as e:
-        log.debug(e)
-        exit(128)
-    except Exception as e:
-        log.debug(e)
+        except KeyboardInterrupt as e:
+            log.debug(e)
+            exit(128)
+        except Exception as e:
+            log.debug(e)
 
 
 if __name__ == '__main__':

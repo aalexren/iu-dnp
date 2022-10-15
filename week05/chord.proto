@@ -19,7 +19,7 @@ service RegisterService {
     rpc PopulateFingerTable(PopulateFingerTableRequest) returns (PopulateFingerTableResponse);
     
     // Share to Client list of all existing nodes in the chord ring.
-    rpc GetChordInfo(ChordRingInfoRequest) returns (ChordRingInfoResponse);
+    rpc GetChordInfo(google.protobuf.Empty) returns (ChordRingInfoResponse);
 
     // Default method for all services to identify type of service
     rpc GetServiceName(google.protobuf.Empty) returns (GetServiceNameResponse);
@@ -30,7 +30,7 @@ service RegisterService {
 service NodeService {
 
     // Client call Node to get finger table of this Node.
-    rpc GetFingerTable(GetFingerTableRequest) returns (GetFingerTableResponse);
+    rpc GetFingerTable(google.protobuf.Empty) returns (GetFingerTableResponse);
 
     // Client (or Node) call Node to save text on some Node,
     // which id (target Node id) will be evaluated using key
