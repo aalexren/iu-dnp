@@ -68,11 +68,16 @@ class Client:
         if isinstance(self.stub, chord_pb2_grpc.NodeServiceStub):
             request = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
             response = self.stub.GetFingerTable(request)
-            log.info(str(response.neighbours))
+            response = response.neighbours
         elif isinstance(self.stub, chord_pb2_grpc.RegisterServiceStub):
             request = chord_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
             response = self.stub.GetChordInfo(request)
-            log.info(str(response.nodes))
+            response = response.nodes
+
+        log.info('\n')
+        for k, v in response.items():
+            log.info(f'id={k} -> {v.ip}:{v.port}')
+        log.info('\n')
 
     def quit(self, *args):
         raise ExitException('Exit client...')
@@ -92,7 +97,7 @@ def main():
             log.info(e)
             exit(0)
         except Exception as e:
-            log.exception(e)
+            log.info(e)
 
 
 if __name__ == '__main__':
