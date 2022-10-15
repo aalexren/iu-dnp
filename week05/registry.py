@@ -16,10 +16,12 @@ parser.add_argument('address', help='<ip>:<port>', type=str)
 parser.add_argument('m', help='key size in bits', type=int)
 
 
-class NodeAddress:
-    def __init__(self, ip: str, port: int):
-        self.ip = ip
-        self.port = port
+# FIXME
+# class NodeAddress(chord_pb2.NodeAddress):
+#     def __init__(self, ip: str, port: int):
+#         self.ip = ip
+#         self.port = port
+#         super().__init__(ip, port)
 
 class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
     
@@ -27,8 +29,13 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         self.ip = ip
         self.port = port
         self.key_size = m # in bits
-        self.chord_nodes: dict[int, NodeAddress]  = dict() # list of registered nodes
+        self.chord_nodes: dict[int, chord_pb2.NodeAddress]  = dict() # list of registered nodes
         self.chord_nodes_list = [-1 for i in range(0, 2 ** m)]
+
+        # XXX
+        self.chord_nodes[5] = chord_pb2.NodeAddress(ip='127.0.0.1', port=5678)
+        self.chord_nodes_list[5] = 5
+
         super().__init__()
 
 
@@ -42,7 +49,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             context.set_details("Chord is full!")
             return chord_pb2.RegisterNodeResponse()
         
-        self.chord_nodes[new_id] = NodeAddress(request.address.ip, request.address.port)
+        self.chord_nodes[new_id] = chord_pb2.NodeAddress(request.address.ip, request.address.port)
         self.chord_nodes_list[new_id] = new_id
         log.info(f'New node if registered with id {new_id}.')
 
@@ -80,7 +87,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
 
         response = {
             'pred_id': predecessor,
-            'pred_address': NodeAddress(pred_address.ip, pred_address.port),
+            'pred_address': chord_pb2.NodeAddress(pred_address.ip, pred_address.port),
             'neighbours': finger_table
         }
 
