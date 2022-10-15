@@ -19,7 +19,7 @@ service RegisterService {
     rpc PopulateFingerTable(PopulateFingerTableRequest) returns (PopulateFingerTableResponse);
     
     // Share to Client list of all existing nodes in the chord ring.
-    rpc GetChordInfo(google.protobuf.Empty) returns (ChordRingInfoResponse);
+    rpc GetChordInfo(google.protobuf.Empty) returns (GetChordInfoResponse);
 
     // Default method for all services to identify type of service
     rpc GetServiceName(google.protobuf.Empty) returns (GetServiceNameResponse);
@@ -100,9 +100,9 @@ message PopulateFingerTableResponse {
 
 }
 
-message ChordRingInfoRequest {}
+message GetChordInfoRequest {}
 
-message ChordRingInfoResponse {
+message GetChordInfoResponse {
     
     // List of nodes in the chord ring.
     map<uint32, NodeAddress> nodes = 1; 

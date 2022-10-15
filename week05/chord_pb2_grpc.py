@@ -35,7 +35,7 @@ class RegisterServiceStub(object):
         self.GetChordInfo = channel.unary_unary(
                 '/RegisterService/GetChordInfo',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=chord__pb2.ChordRingInfoResponse.FromString,
+                response_deserializer=chord__pb2.GetChordInfoResponse.FromString,
                 )
         self.GetServiceName = channel.unary_unary(
                 '/RegisterService/GetServiceName',
@@ -108,7 +108,7 @@ def add_RegisterServiceServicer_to_server(servicer, server):
             'GetChordInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetChordInfo,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=chord__pb2.ChordRingInfoResponse.SerializeToString,
+                    response_serializer=chord__pb2.GetChordInfoResponse.SerializeToString,
             ),
             'GetServiceName': grpc.unary_unary_rpc_method_handler(
                     servicer.GetServiceName,
@@ -191,7 +191,7 @@ class RegisterService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/RegisterService/GetChordInfo',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            chord__pb2.ChordRingInfoResponse.FromString,
+            chord__pb2.GetChordInfoResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
