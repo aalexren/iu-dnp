@@ -174,16 +174,19 @@ message FindResponse {
     NodeAddress node_address = 3;
 }
 
-message QuitRequest {
-    // TODO
-}
+// message QuitRequest {
+//     uint32 node_id = 1;
+// }
 
-message QuitResponse {
-    // TODO
-}
+// message QuitResponse {
+//     // TODO
+// }
 
 message GetServiceNameRequest {}
 
 message GetServiceNameResponse {
     string service_name = 1;
+
+    // Optional for Nodes
+    uint32 node_id = 2;
 }
