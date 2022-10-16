@@ -1,4 +1,6 @@
 import random as rnd
+rnd.seed(0)
+
 from concurrent import futures
 import argparse
 
@@ -26,8 +28,8 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         self.chord_nodes_list = [-1 for i in range(0, 2 ** m)]
 
         # XXX
-        self.chord_nodes[5] = chord_pb2.NodeAddress(ip='127.0.0.1', port=5678)
-        self.chord_nodes_list[5] = 5
+        # self.chord_nodes[5] = chord_pb2.NodeAddress(ip='127.0.0.1', port=5678)
+        # self.chord_nodes_list[5] = 5
 
         super().__init__()
 
@@ -73,11 +75,11 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             response = {
                 'is_deregistered': True
             }
-            return chord_pb2.DeregisteredNodeResponse(**response)
+            return chord_pb2.DeregisterNodeResponse(**response)
         
         context.set_code(grpc.StatusCode.NOT_FOUND)
         context.set_details("Node was not found!")
-        return chord_pb2.DeregisteredNodeResponse()
+        return chord_pb2.DeregisterNodeResponse()
 
 
     def PopulateFingerTable(self, request, context):
@@ -146,7 +148,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
             if self.chord_nodes_list[i] != -1:
                 return self.chord_nodes_list[i]
         
-        for i in range(m - 1, node_id - 1, -1):
+        for i in range(2 ** self.key_size - 1, node_id - 1, -1):
             if self.chord_nodes_list[i] != -1:
                 return self.chord_nodes_list[i]
         
