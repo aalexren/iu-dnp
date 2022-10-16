@@ -81,6 +81,11 @@ message DeregisterNodeResponse {
     bool is_deregistered = 1;
 }
 
+message NodeAddressAndId {
+    uint32 id = 1;
+    NodeAddress address = 2;
+}
+
 message PopulateFingerTableRequest {
 
     // Node's id to get all its neighbours
@@ -96,7 +101,7 @@ message PopulateFingerTableResponse {
     NodeAddress pred_address = 2;
 
     // Neighbours to communicate with.
-    map<uint32, NodeAddress> neighbours = 3;
+    repeated NodeAddressAndId neighbours = 3;
 
 }
 
@@ -172,6 +177,9 @@ message FindResponse {
 
     // Node's address where key was found on.
     NodeAddress node_address = 3;
+
+    // Text saved on this node
+    string text = 4;
 }
 
 // message QuitRequest {
