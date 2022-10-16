@@ -14,15 +14,13 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63hord.proto\x1a\x1bgoogle/protobuf/empty.proto\"\'\n\x0bNodeAddress\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"4\n\x13RegisterNodeRequest\x12\x1d\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0b\x32\x0c.NodeAddress\"2\n\x14RegisterNodeResponse\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\t\n\x01m\x18\x02 \x01(\r\"(\n\x15\x44\x65registerNodeRequest\x12\x0f\n\x07node_id\x18\x01 \x01(\r\"1\n\x16\x44\x65registerNodeResponse\x12\x17\n\x0fis_deregistered\x18\x01 \x01(\x08\"-\n\x1aPopulateFingerTableRequest\x12\x0f\n\x07node_id\x18\x01 \x01(\r\"\xd5\x01\n\x1bPopulateFingerTableResponse\x12\x0f\n\x07pred_id\x18\x01 \x01(\r\x12\"\n\x0cpred_address\x18\x02 \x01(\x0b\x32\x0c.NodeAddress\x12@\n\nneighbours\x18\x03 \x03(\x0b\x32,.PopulateFingerTableResponse.NeighboursEntry\x1a?\n\x0fNeighboursEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x1b\n\x05value\x18\x02 \x01(\x0b\x32\x0c.NodeAddress:\x02\x38\x01\"\x15\n\x13GetChordInfoRequest\"\x83\x01\n\x14GetChordInfoResponse\x12/\n\x05nodes\x18\x01 \x03(\x0b\x32 .GetChordInfoResponse.NodesEntry\x1a:\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x1b\n\x05value\x18\x02 \x01(\x0b\x32\x0c.NodeAddress:\x02\x38\x01\"\x17\n\x15GetFingerTableRequest\"\x96\x01\n\x16GetFingerTableResponse\x12;\n\nneighbours\x18\x01 \x03(\x0b\x32\'.GetFingerTableResponse.NeighboursEntry\x1a?\n\x0fNeighboursEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x1b\n\x05value\x18\x02 \x01(\x0b\x32\x0c.NodeAddress:\x02\x38\x01\"(\n\x0bSaveRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"1\n\x0cSaveResponse\x12\x10\n\x08is_saved\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\"\x1c\n\rRemoveRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"5\n\x0eRemoveResponse\x12\x12\n\nis_deleted\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\"\x1a\n\x0b\x46indRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"U\n\x0c\x46indResponse\x12\x10\n\x08is_found\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\x12\"\n\x0cnode_address\x18\x03 \x01(\x0b\x32\x0c.NodeAddress\"\r\n\x0bQuitRequest\"\x0e\n\x0cQuitResponse\"\x17\n\x15GetServiceNameRequest\"?\n\x16GetServiceNameResponse\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\r2\xe5\x02\n\x0fRegisterService\x12;\n\x0cRegisterNode\x12\x14.RegisterNodeRequest\x1a\x15.RegisterNodeResponse\x12\x41\n\x0e\x44\x65registerNode\x12\x16.DeregisterNodeRequest\x1a\x17.DeregisterNodeResponse\x12P\n\x13PopulateFingerTable\x12\x1b.PopulateFingerTableRequest\x1a\x1c.PopulateFingerTableResponse\x12=\n\x0cGetChordInfo\x12\x16.google.protobuf.Empty\x1a\x15.GetChordInfoResponse\x12\x41\n\x0eGetServiceName\x12\x16.google.protobuf.Empty\x1a\x17.GetServiceNameResponse2\x88\x02\n\x0bNodeService\x12\x41\n\x0eGetFingerTable\x12\x16.google.protobuf.Empty\x1a\x17.GetFingerTableResponse\x12#\n\x04Save\x12\x0c.SaveRequest\x1a\r.SaveResponse\x12)\n\x06Remove\x12\x0e.RemoveRequest\x1a\x0f.RemoveResponse\x12#\n\x04\x46ind\x12\x0c.FindRequest\x1a\r.FindResponse\x12\x41\n\x0eGetServiceName\x12\x16.google.protobuf.Empty\x1a\x17.GetServiceNameResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63hord.proto\x1a\x1bgoogle/protobuf/empty.proto\"\'\n\x0bNodeAddress\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"4\n\x13RegisterNodeRequest\x12\x1d\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0b\x32\x0c.NodeAddress\"2\n\x14RegisterNodeResponse\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\t\n\x01m\x18\x02 \x01(\r\"(\n\x15\x44\x65registerNodeRequest\x12\x0f\n\x07node_id\x18\x01 \x01(\r\"1\n\x16\x44\x65registerNodeResponse\x12\x17\n\x0fis_deregistered\x18\x01 \x01(\x08\"=\n\x10NodeAddressAndId\x12\n\n\x02id\x18\x01 \x01(\r\x12\x1d\n\x07\x61\x64\x64ress\x18\x02 \x01(\x0b\x32\x0c.NodeAddress\"-\n\x1aPopulateFingerTableRequest\x12\x0f\n\x07node_id\x18\x01 \x01(\r\"y\n\x1bPopulateFingerTableResponse\x12\x0f\n\x07pred_id\x18\x01 \x01(\r\x12\"\n\x0cpred_address\x18\x02 \x01(\x0b\x32\x0c.NodeAddress\x12%\n\nneighbours\x18\x03 \x03(\x0b\x32\x11.NodeAddressAndId\"\x15\n\x13GetChordInfoRequest\"\x83\x01\n\x14GetChordInfoResponse\x12/\n\x05nodes\x18\x01 \x03(\x0b\x32 .GetChordInfoResponse.NodesEntry\x1a:\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x1b\n\x05value\x18\x02 \x01(\x0b\x32\x0c.NodeAddress:\x02\x38\x01\"\x17\n\x15GetFingerTableRequest\"\x96\x01\n\x16GetFingerTableResponse\x12;\n\nneighbours\x18\x01 \x03(\x0b\x32\'.GetFingerTableResponse.NeighboursEntry\x1a?\n\x0fNeighboursEntry\x12\x0b\n\x03key\x18\x01 \x01(\r\x12\x1b\n\x05value\x18\x02 \x01(\x0b\x32\x0c.NodeAddress:\x02\x38\x01\"(\n\x0bSaveRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"1\n\x0cSaveResponse\x12\x10\n\x08is_saved\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\"\x1c\n\rRemoveRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"5\n\x0eRemoveResponse\x12\x12\n\nis_deleted\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\"\x1a\n\x0b\x46indRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"c\n\x0c\x46indResponse\x12\x10\n\x08is_found\x18\x01 \x01(\x08\x12\x0f\n\x07node_id\x18\x02 \x01(\r\x12\"\n\x0cnode_address\x18\x03 \x01(\x0b\x32\x0c.NodeAddress\x12\x0c\n\x04text\x18\x04 \x01(\t\"\x17\n\x15GetServiceNameRequest\"?\n\x16GetServiceNameResponse\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\r2\xe5\x02\n\x0fRegisterService\x12;\n\x0cRegisterNode\x12\x14.RegisterNodeRequest\x1a\x15.RegisterNodeResponse\x12\x41\n\x0e\x44\x65registerNode\x12\x16.DeregisterNodeRequest\x1a\x17.DeregisterNodeResponse\x12P\n\x13PopulateFingerTable\x12\x1b.PopulateFingerTableRequest\x1a\x1c.PopulateFingerTableResponse\x12=\n\x0cGetChordInfo\x12\x16.google.protobuf.Empty\x1a\x15.GetChordInfoResponse\x12\x41\n\x0eGetServiceName\x12\x16.google.protobuf.Empty\x1a\x17.GetServiceNameResponse2\x88\x02\n\x0bNodeService\x12\x41\n\x0eGetFingerTable\x12\x16.google.protobuf.Empty\x1a\x17.GetFingerTableResponse\x12#\n\x04Save\x12\x0c.SaveRequest\x1a\r.SaveResponse\x12)\n\x06Remove\x12\x0e.RemoveRequest\x1a\x0f.RemoveResponse\x12#\n\x04\x46ind\x12\x0c.FindRequest\x1a\r.FindResponse\x12\x41\n\x0eGetServiceName\x12\x16.google.protobuf.Empty\x1a\x17.GetServiceNameResponseb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chord_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _POPULATEFINGERTABLERESPONSE_NEIGHBOURSENTRY._options = None
-  _POPULATEFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_options = b'8\001'
   _GETCHORDINFORESPONSE_NODESENTRY._options = None
   _GETCHORDINFORESPONSE_NODESENTRY._serialized_options = b'8\001'
   _GETFINGERTABLERESPONSE_NEIGHBOURSENTRY._options = None
@@ -37,46 +35,42 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _DEREGISTERNODEREQUEST._serialized_end=231
   _DEREGISTERNODERESPONSE._serialized_start=233
   _DEREGISTERNODERESPONSE._serialized_end=282
-  _POPULATEFINGERTABLEREQUEST._serialized_start=284
-  _POPULATEFINGERTABLEREQUEST._serialized_end=329
-  _POPULATEFINGERTABLERESPONSE._serialized_start=332
-  _POPULATEFINGERTABLERESPONSE._serialized_end=545
-  _POPULATEFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_start=482
-  _POPULATEFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_end=545
-  _GETCHORDINFOREQUEST._serialized_start=547
-  _GETCHORDINFOREQUEST._serialized_end=568
-  _GETCHORDINFORESPONSE._serialized_start=571
-  _GETCHORDINFORESPONSE._serialized_end=702
-  _GETCHORDINFORESPONSE_NODESENTRY._serialized_start=644
-  _GETCHORDINFORESPONSE_NODESENTRY._serialized_end=702
-  _GETFINGERTABLEREQUEST._serialized_start=704
-  _GETFINGERTABLEREQUEST._serialized_end=727
-  _GETFINGERTABLERESPONSE._serialized_start=730
-  _GETFINGERTABLERESPONSE._serialized_end=880
-  _GETFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_start=482
-  _GETFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_end=545
-  _SAVEREQUEST._serialized_start=882
-  _SAVEREQUEST._serialized_end=922
-  _SAVERESPONSE._serialized_start=924
-  _SAVERESPONSE._serialized_end=973
-  _REMOVEREQUEST._serialized_start=975
-  _REMOVEREQUEST._serialized_end=1003
-  _REMOVERESPONSE._serialized_start=1005
-  _REMOVERESPONSE._serialized_end=1058
-  _FINDREQUEST._serialized_start=1060
-  _FINDREQUEST._serialized_end=1086
-  _FINDRESPONSE._serialized_start=1088
-  _FINDRESPONSE._serialized_end=1173
-  _QUITREQUEST._serialized_start=1175
-  _QUITREQUEST._serialized_end=1188
-  _QUITRESPONSE._serialized_start=1190
-  _QUITRESPONSE._serialized_end=1204
-  _GETSERVICENAMEREQUEST._serialized_start=1206
-  _GETSERVICENAMEREQUEST._serialized_end=1229
-  _GETSERVICENAMERESPONSE._serialized_start=1231
-  _GETSERVICENAMERESPONSE._serialized_end=1294
-  _REGISTERSERVICE._serialized_start=1297
-  _REGISTERSERVICE._serialized_end=1654
-  _NODESERVICE._serialized_start=1657
-  _NODESERVICE._serialized_end=1921
+  _NODEADDRESSANDID._serialized_start=284
+  _NODEADDRESSANDID._serialized_end=345
+  _POPULATEFINGERTABLEREQUEST._serialized_start=347
+  _POPULATEFINGERTABLEREQUEST._serialized_end=392
+  _POPULATEFINGERTABLERESPONSE._serialized_start=394
+  _POPULATEFINGERTABLERESPONSE._serialized_end=515
+  _GETCHORDINFOREQUEST._serialized_start=517
+  _GETCHORDINFOREQUEST._serialized_end=538
+  _GETCHORDINFORESPONSE._serialized_start=541
+  _GETCHORDINFORESPONSE._serialized_end=672
+  _GETCHORDINFORESPONSE_NODESENTRY._serialized_start=614
+  _GETCHORDINFORESPONSE_NODESENTRY._serialized_end=672
+  _GETFINGERTABLEREQUEST._serialized_start=674
+  _GETFINGERTABLEREQUEST._serialized_end=697
+  _GETFINGERTABLERESPONSE._serialized_start=700
+  _GETFINGERTABLERESPONSE._serialized_end=850
+  _GETFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_start=787
+  _GETFINGERTABLERESPONSE_NEIGHBOURSENTRY._serialized_end=850
+  _SAVEREQUEST._serialized_start=852
+  _SAVEREQUEST._serialized_end=892
+  _SAVERESPONSE._serialized_start=894
+  _SAVERESPONSE._serialized_end=943
+  _REMOVEREQUEST._serialized_start=945
+  _REMOVEREQUEST._serialized_end=973
+  _REMOVERESPONSE._serialized_start=975
+  _REMOVERESPONSE._serialized_end=1028
+  _FINDREQUEST._serialized_start=1030
+  _FINDREQUEST._serialized_end=1056
+  _FINDRESPONSE._serialized_start=1058
+  _FINDRESPONSE._serialized_end=1157
+  _GETSERVICENAMEREQUEST._serialized_start=1159
+  _GETSERVICENAMEREQUEST._serialized_end=1182
+  _GETSERVICENAMERESPONSE._serialized_start=1184
+  _GETSERVICENAMERESPONSE._serialized_end=1247
+  _REGISTERSERVICE._serialized_start=1250
+  _REGISTERSERVICE._serialized_end=1607
+  _NODESERVICE._serialized_start=1610
+  _NODESERVICE._serialized_end=1874
 # @@protoc_insertion_point(module_scope)
