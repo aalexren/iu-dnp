@@ -86,7 +86,14 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         node_id = request.node_id
 
         fingers = self._get_finger_table(node_id)
-        finger_table = {finger: self.chord_nodes[finger] for finger in fingers}
+        # finger self.chord_nodes[finger] for finger in fingers]
+        finger_table = [
+            chord_pb2.NodeAddressAndId(
+                id=finger,
+                address=self.chord_nodes[finger]
+            )
+            for finger in fingers
+        ]
 
         predecessor = self._closest_preceding_node(node_id)
         pred_address = self.chord_nodes[predecessor]
@@ -185,7 +192,7 @@ class RegisterServiceHandler(chord_pb2_grpc.RegisterServiceServicer):
         for i, v in enumerate(raw_finger_table):
             if v in self.chord_nodes:
                 finger_table.append(v)
-            else:
+            elif self._find_successor(v) != node_id:
                 finger_table.append(self._find_successor(v))
         
         return finger_table

@@ -73,6 +73,9 @@ class Client:
                 continue
 
         print(f'Client connected to {response.service_name}: {self.host}:{self.port}')
+        # TODO
+        if response.node_id:
+            print(f'Node id #{response.node_id}')
 
 
     def get_info(self, *args):
@@ -91,7 +94,7 @@ class Client:
             response = response.nodes
 
         for k, v in response.items():
-            print(f'id={k} -> {v.ip}:{v.port}')
+            print(f'{k}\t-> {v.ip}:{v.port}')
 
 
     def save(self, args):
@@ -114,7 +117,7 @@ class Client:
         if response.is_saved:
             print(f"{key} has been saved on Node with id #{response.node_id}")
         else:
-            print(f"{response.details}")
+            print(f"Key was not saved.")
 
 
     def remove(self, args):
@@ -133,9 +136,9 @@ class Client:
             chord_pb2.RemoveRequest(**request)
         )
         if response.is_deleted:
-            print(f"{key} has been saved on Node with id #{response.node_id}")
+            print(f"{key} has been removed from Node with id #{response.node_id}")
         else:
-            print(f"{response.details}")
+            print(f"Key was not removed.")
 
 
     def find(self, args):
@@ -154,10 +157,11 @@ class Client:
             chord_pb2.FindRequest(**request)
         )
         if response.is_found:
-            print(f"{key} has been saved on Node with id #{response.node_id} \
+            print(f"{key} has been found on Node with id #{response.node_id} \
                 with {response.node_address.ip}:{response.node_address.port}")
+            print(f'Text: {response.text}')
         else:
-            print(f"{response.details}")
+            print(f"Key was not found.")
 
 
     def quit(self, *args):
