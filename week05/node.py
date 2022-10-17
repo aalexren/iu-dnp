@@ -49,7 +49,7 @@ class NodeServiceHandler(chord_pb2_grpc.NodeServiceServicer):
     # on N28, but N28 lookup that it should be saved
     # on N13. So, it loops and stucks.
 
-    # FIXME
+    # FIXME. UPD -> partially fixed (for removing)
     # If key will be saved on Node before others nodes
     # goes to chord, the new Node may not find this key.
     # Node should distribute its data keeper whenever 
