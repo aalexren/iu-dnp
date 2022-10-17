@@ -1,3 +1,26 @@
+"""
+- pass an error thorugh grpc context: 
+    https://stackoverflow.com/questions/40998199/raising-a-server-error-to-the-client-with-grpc
+
+- logging:
+    https://realpython.com/python-logging/
+
+- use same logging in multiple modules
+    https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
+
+- grpc google doc:
+    https://developers.google.com/protocol-buffers/docs/reference/python-generated#map-fields
+
+- grpc status codes
+    https://grpc.github.io/grpc/python/grpc.html#grpc-status-code
+
+- handle exception from grpc
+    https://stackoverflow.com/questions/57306467/how-do-i-get-the-status-code-ok-response-from-a-grpc-client
+
+
+"""
+
+
 from concurrent import futures
 import argparse
 import threading
