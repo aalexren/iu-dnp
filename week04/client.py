@@ -31,7 +31,7 @@ if __name__ == '__main__':
                     for num in numbers:
                         yield service_pb2.NumberReq(number=num)
 
-                for entry in stub.IsPrime(func(map(int, data))):
+                for entry in stub.IsPrime(func(map(int, data[0].split()))):
                     print(entry.answer)
             elif cmd == 'exit':
                 raise KeyboardInterrupt
