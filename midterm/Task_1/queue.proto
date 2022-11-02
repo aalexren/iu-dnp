@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+service QueueService {
+    rpc put(PutRequest) returns (PutResponse);
+    
+    rpc peek(google.protobuf.Empty) returns (PeekResponse);
+
+    rpc pop(google.protobuf.Empty) returns (PopResponse);
+
+    rpc size(google.protobuf.Empty) returns (SizeResponse);
+}
+
+message PutRequest {
+    string item = 1;
+}
+
+message PutResponse {
+    bool is_put = 1;
+}
+
+message PeekResponse {
+    // if no item in response means
+    // queue is already empty
+    string item = 1;
+}
+
+message PopResponse {
+    // if no item in response means
+    // queue is already empty
+    string item = 1;
+}
+
+message SizeResponse {
+    uint32 size = 1;
+}
