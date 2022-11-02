@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "week06"
+version = "0.1.0"
+description = ""
+authors = ["aalexren <chernicaar@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+grpcio-tools = "^1.50.0"
+grpcio = "^1.50.0"
+click = "^8.1.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
