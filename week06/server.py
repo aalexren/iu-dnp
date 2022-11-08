@@ -10,9 +10,13 @@ import random as rnd
 from typing import Union
 from enum import Enum
 from concurrent import futures
-# from queue import Queue
+from threading import Timer, Event, Lock, Thread
 
-INTERVAL = 0.001
+
+timer_lock = Event()
+term_lock = Lock()
+state_lock = Lock()
+
 
 class State(Enum):
     Follower = 1,
@@ -25,203 +29,314 @@ class Status(Enum):
     Running = 2
 
 
-class Server(raft_grpc.RaftServiceServicer):
-    def __init__(self, id: int, address: str, neighbours):
-        """
-        Makes a Server instance.
+class Address:
+    def __init__(self, id: int, ip: str, port: int):
+        self.id = id
+        self.ip = ip
+        self.port = port
 
-        :param id: id of the server
-        :param address: address in form of <ip:port>
-        :param neighbours: list of (id, address) tuples
-        """
-        super().__init__()
+    def __repr__(self):
+        return f"<{self.id} => {self.ip}:{self.port}>"
+
+
+class Server:
+    def __init__(self, id: int, address: Address, neighbours):
+        self.state = State.Follower # default state
+        self.status = Status.Running # default status
+        self.term = 0 # default term
         self.id = id
         self.address = address
         self.neighbours = neighbours
-        # self.queue = Queue(len(neighbours))
-        self.state = State.Follower
-        self.term = 0
-        
-        self.reset_time = rnd.randint(150, 300) # ms
-        print(f'I am a {self.state}. Term: {self.term}. Reset time = {self.reset_time}')
-        self.counter = 0 # timer counter
-        self.leader: Union[tuple, None] = None # (id, address) of leader
-        self.isVoted = False
-        self.status = Status.Running
-        # self.timer = self.__start_timer().start()
-        self.__start_timer().start()
+        self.last_vote_term = -1 # default vote
+        self.leader_id = self.id # default
+        self.start()
     
+    def start(self):
+        self.initialize_timer()
+        self.timer.start()
+    
+    def initialize_timer(self):
+        """Assign time interval for the timer. Initialize timer.
+        """
+        self.timer_interval = rnd.randint(150, 300) / 1000
+        self.timer = Timer(self.timer_interval, self.follower_timer)
+
+    def follower_timer(self):
+        """Wait for to become a candidate. Reset if event is occured.
+        """
+        # TODO
+        # while not timer_lock.is_set():
+        if self.state == State.Follower and self.status == Status.Running:
+            print(f"I am a follower. Term: {self.term}")
+            if self.timer.finished:
+                # print(f"Become a candidate, id #{self.id}")
+                print("The leader is dead")
+                self.become_candidate()
+                self.start_election()
+            # else:
+            # # print(f"Call every {self.timer_interval} second, id #{self.id}")
+            #     self.timer = Timer(self.timer_interval, self.follower_timer)
+            #     self.timer.start()
+
+    def reinitialize_timer(self):
+        """Assign new time interval.
+        """
+        self.timer_interval = rnd.randint(150, 300) / 1000
+
+    def reset_timer(self):
+        """Cancel current runnig timer and start it again.
+        """
+        # print('timer reset')
+        self.timer.cancel()
+        self.timer = Timer(self.timer_interval, self.follower_timer)
+        self.timer.start()
+
+    def update_term(self):
+        with term_lock:
+            self.term += 1
+
+    def update_term_t(self, t):
+        with term_lock:
+            self.term = t
+
+    def update_state(self, state: State):
+        """Take a new state due to some events.
+        """
+        with state_lock:
+            self.state = state
+
+
+    def update_vote(self, term):
+        """Vote for someone on this term.
+        """
+        if self.last_vote_term < term:
+            self.last_vote_term = term
+
+    def become_candidate(self):
+        self.update_state(State.Candidate)
+        self.update_term()
+        print(f"I am a candidate. Term: {self.term}")
+        # print(f'server {self.state} and term {self.term}')
+
+    def start_election(self):
+        """Collect votes from neighbours and itself.
+        Becomes Leader if possible.
+        """
+        if self.status == Status.Suspended:
+            return
+
+        if self.state != State.Candidate:
+            return
+
+        requests = []
+        votes = [0 for _ in range(len(self.neighbours))]
+        for n in self.neighbours:
+            thread = Thread(target=self.request_vote, args=(n, votes))
+            requests.append(thread)
+            thread.start()
+        
+        for thread in requests:
+            thread.join()
+
+        if self.state != State.Candidate:
+            return
+        print("Votes received")
+        
+        if sum(votes) > len(votes) // 2: #TODO change the len(votes) to the number of running nodes
+            self.become_leader()
+        else:
+            self.update_state(State.Follower)
+            self.reinitialize_timer()
+            self.reset_timer()
+            # print('I am a follower because I did not have enough votes')
+
+    def request_vote(self, addr: Address, votes):
+        if self.status == Status.Suspended:
+            return
+
+        channel = grpc.insecure_channel(f"{addr.ip}:{addr.port}")
+        stub = raft_grpc.RaftServiceStub(channel)
+        if self.state != State.Candidate:
+            return
+        request = {
+            'candidateTerm': self.term,
+            'candidateId': self.id,
+        }
+        try:
+            response = stub.RequestVote(
+                raft.RequestVoteRequest(**request)
+            )
+            if response.term > self.term:
+                self.term = response.term # FIXME
+                self.become_follower()
+            elif response.result and response.term <= self.term:
+                votes[addr.id] = 1
+        except:
+            pass # FIXME
+        
+    def become_follower(self):
+        self.update_state(State.Follower)
+        self.reset_timer()
+        # print(f'server {self.state} and term {self.term}')
+
+    def become_leader(self):
+        if self.status == Status.Suspended:
+            return
+        
+        if self.state == State.Candidate:
+            # print(f'server {self.state} and term {self.term}')
+            self.update_state(State.Leader)
+            self.heartbeat_timer()
+            self.leader_id = self.id
+            print(f"I am a leader. Term: {self.term}")
+
+    def send_heartbeat(self, addr):
+        if self.status == Status.Suspended:
+            return
+
+        channel = grpc.insecure_channel(f"{addr.ip}:{addr.port}")
+        stub = raft_grpc.RaftServiceStub(channel)
+        request = {
+            'leaderTerm': self.term,
+            'leaderId': self.id
+        }
+        # print('sent heartbeat')
+        try:
+            response = stub.AppendEntries(
+                raft.AppendEntriesRequest(**request)
+            )
+            if response.term > self.term and self.state:
+                # print('I was a leader and became a follower because of a higher term')
+                self.term = response.term # FIXME
+                self.update_state(State.Follower)
+        except:
+            pass
+
+    def heartbeat_timer(self):
+        if self.status == Status.Suspended:
+            return
+
+        if self.state != State.Leader:
+            return
+        pool = []
+        for n in self.neighbours:
+            if n.id != MY_ADDR.id:
+                thread = Thread(target=self.send_heartbeat, args=(n,))
+                thread.start()
+                pool.append(thread)
+        
+        for t in pool:
+            t.join()
+        
+        self.leader_timer = Timer(50 / 1000, self.heartbeat_timer)
+        self.leader_timer.start()
+
+    def suspend_loop(self, period):
+        self.status = Status.Suspended
+        self.timer.cancel()
+        self.timer = Timer(period, self.sleep)
+        self.timer.start()
+
+    def sleep(self):
+        self.status = Status.Running
+        if self.state == State.Leader:
+            self.heartbeat_timer()
+        elif self.state == State.Candidate:
+            self.start_election()
+        else:
+            self.reset_timer()
+
+class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
+    def __init__(self, id: int, address: Address, neighbours):
+        super().__init__(id, address, neighbours)
+        print(f"The server starts at {address.ip}:{address.port}")
+        print(f"I am a follower. Term: {self.term}")
+
     def RequestVote(self, request, context):
+        if self.status == Status.Suspended:
+            return
+
         candidate_term = request.candidateTerm
         candidate_id = request.candidateId
         result = False
 
-        if candidate_term == self.term and not self.isVoted:
-            self.isVoted = True
+        if candidate_term == self.term and self.last_vote_term < candidate_term:
+            self.last_vote_term = candidate_term
             result = True
         if candidate_term > self.term:
             self.term = candidate_term
-            self.isVoted = True
+            self.last_vote_term = candidate_term
             result = True
         
-        self.counter = 0 # you will always reset the timer
-        if self.state == State.Candidate or self.state == State.Leader and result:
-            self.term += 1
-            self.isVoted = False
-            self.state = State.Follower
+        if result and candidate_id != MY_ADDR.id:
+            self.become_follower()
+            self.reset_timer()
+            self.leader_id = candidate_id
+        
+        if result:
+            print(f"Voted for node {candidate_id}")
 
         response = {
             'term': self.term,
             'result': result
         }
         return raft.RequestVoteResponse(**response)
-
+    
     def AppendEntries(self, request, context):
+        if self.status == Status.Suspended:
+            return
+
         term = request.leaderTerm
         leader_id = request.leaderId
         success = True if term >= self.term else False
-        self.counter = 0
-        if self.state == State.Candidate:
-            self.state = State.Follower
+
+        if self.state != State.Leader:
+            self.reset_timer()
         print('recived heartbeat')
+
+        if self.state == State.Candidate:
+            self.become_follower()
+            self.leader_id = leader_id
+        
+        if success:
+            self.leader_id = leader_id
+
         response = {
             'term': self.term,
             'success': success
         }
         return raft.AppendEntriesResponse(**response)
 
-    
     def GetLeader(self, request, context):
-        if self.leader:
-            leaderId = self.leader[0]
-            address = self.leader[1]
+        if self.status == Status.Suspended:
+            return
+        
         response = {
-            'leaderId': leaderId,
-            'address': address
+            'leaderId': self.leader_id,
+            'address': f'{self.neighbours[self.leader_id].ip}:{self.neighbours[self.leader_id].port}'
         }
-        return raft.GetLeaderResponse(**response)
-
+        return raft.GetLeaderResponse(
+            **response
+        )
+    
     def Suspend(self, request, context):
-        self.status = Status.Suspended
+        if self.status == Status.Suspended:
+            return
+        
+        self.suspend_loop(request.period)
         print(f'Sleeping for {request.period} seconds.')
-        time.sleep(request.period)
-        return raft.SuspendResponse()
-    
-    def __send_heartbeat(self, addr):
-        channel = grpc.insecure_channel(addr)
-        stub = raft_grpc.RaftServiceStub(channel)
-        request = {
-            'leaderTerm': self.term,
-            'leaderId': self.id
-        }
-        try:
-            response = stub.AppendEntries(
-                raft.AppendEntriesRequest(**request)
-            )
-            if response.term > self.term:
-                self.term = response.term
-                self.state = State.Follower
-                self.counter = 0
-            print('sent heartbeat')
-        except:
-            pass
 
-    def __heartbeat_manager(self):
-        print(f'I will send heartbeats. counter = {self.counter}')
-        pool = [threading.Thread(target=self.__send_heartbeat, args=(_[1],))
-            for _ in self.neighbours]
-        for t in pool:
-            t.start()
-        for t in pool:
-            t.join()
-
-    def __start_timer(self):
-        thread = threading.Thread(target=self.__timer)
-        return thread
-
-    def __timer(self):
-        start_time = time.time()
-        # while self.timer.is_alive:
-        while True:
-            if self.status == Status.Suspended:
-                continue
-            if self.counter % 50 == 0 and self.state == State.Leader:
-                self.__update_on_time_limit()
-                continue
-            if self.counter > self.reset_time and self.state != State.Leader:
-                self.__update_on_time_limit()
-            self.__increase_counter()
-            time.sleep(INTERVAL - ((time.time() - start_time) % INTERVAL))
-
-    def __increase_counter(self):
-        self.counter += 1
-
-    def __update_on_time_limit(self):
-        if self.state == State.Follower:
-            # the follower will become a candidate 
-            self.term += 1
-            self.counter = 0
-            self.state = State.Candidate
-            print(f'I am a {self.state}. Term: {self.term}')
-            # request votes from all other candidates
-            self.__votes_collecting()
-            return
-        if self.state == State.Candidate:
-            # the candidate will become a follower since the time is up
-            self.reset_time = rnd.randint(150, 300) # ms
-            self.counter = 0
-            self.term += 1
-            self.state = State.Follower
-            print(f'I am a {self.state}. Term: {self.term}')
-            return
-        if self.state == State.Leader:
-            self.counter = 0
-            self.__heartbeat_manager()
-        return
-        # if the state was leader and a timeout happend, then it will skip it
-    
-    def __update_to_leader(self):
-        self.state = State.Leader
-        self.term += 1
-        self.counter = 0
-        self.leader = (self.id, self.address)
-        print(f'I am a {self.state}. Term: {self.term}')
-
-    def __votes_collecting(self):
-        votes_count = 1
-        start_time = time.time()
-        for node in self.neighbours:
-            channel = grpc.insecure_channel(node[1])
-            stub = raft_grpc.RaftServiceStub(channel)
-            request = {
-                'candidateTerm': self.term,
-                'candidateId': self.id,
-            }
-            try:
-                response = stub.RequestVote(
-                    raft.RequestVoteRequest(**request)
-                )
-                if response and response.result:
-                    votes_count += 1
-                if votes_count > len(self.neighbours) // 2:
-                    self.__update_to_leader()
-                    break
-            except:
-                pass
-                # print('Couldn\'t connect to node...')
-        
-        print(f'time taken = {time.time() - start_time}, time = {time.time()}, start time = {start_time}')
-        
+        return raft.SuspendResponse(**{})
 
 
-def run(handler: Server):
+def run(handler: RaftServiceHandler):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     raft_grpc.add_RaftServiceServicer_to_server(
         handler, server
     )
-    server.add_insecure_port(f'[::]:{handler.address.split(":")[1]}')
+    server.add_insecure_port(f'[::]:{handler.address.port}')
     try:
-        print(f"Server has been started with address {handler.address}")
+        # print(f"Server has been started with address {handler.address}")
         server.start()
         server.wait_for_termination()
     except KeyboardInterrupt:
@@ -229,18 +344,25 @@ def run(handler: Server):
 
 
 if __name__ == "__main__":
-    
+    global MY_ADDR 
     neighbours = []
     id = int(sys.argv[1])
     address = None
     with open('config.conf') as conf:
         while s := conf.readline():
-            n_ip, *n_address = s.split()
-            if int(n_ip) == id:
-                address = ':'.join(n_address)
-            else:
-                neighbours.append((int(n_ip), ':'.join(n_address)))
+            n_id, *n_address = s.split()
+            if int(n_id) == id:
+                address = Address(int(n_id), n_address[0], int(n_address[1]))
+                MY_ADDR = address
+            
+            n_ip = n_address[0]
+            n_port = int(n_address[1])
+            # print(Address(n_ip, n_port))
+            neighbours.append(Address(int(n_id), n_ip, n_port))
     try:
-        run(Server(id, address, neighbours))
+        pass
+        run(RaftServiceHandler(id, address, neighbours))
     except Exception as e:
         print(e)
+
+MY_ADDR = None
