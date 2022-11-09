@@ -18,7 +18,7 @@ class User:
         self.channel = None
         self.stub = None
 
-    def connect(self, ip: str, port: str | int):
+    def connect(self, ip: str, port: str):
         self.address = Address(ip, int(port))
         self.channel = grpc.insecure_channel(
             f'{ip}:{int(port)}'
