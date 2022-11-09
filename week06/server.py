@@ -304,6 +304,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             return raft.GetLeaderResponse()
 
         print('Command from client: getleader')
+        print(f'{self.leader_id} {self.neighbours[self.leader_id].ip}:{self.neighbours[self.leader_id].port}')
         response = {
             'leaderId': self.leader_id,
             'address': f'{self.neighbours[self.leader_id].ip}:{self.neighbours[self.leader_id].port}'
