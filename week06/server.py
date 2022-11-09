@@ -192,7 +192,7 @@ class Server:
             response = stub.AppendEntries(
                 raft.AppendEntriesRequest(**request)
             )
-            if response.term > self.term and self.state:
+            if response.term > self.term:
                 self.term = response.term
                 print(f"I am a follower. Term: {self.term}")
                 self.update_state(State.Follower)
