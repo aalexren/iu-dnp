@@ -2,8 +2,6 @@ import grpc
 import raft_pb2
 import raft_pb2_grpc
 
-import click
-
 class Address:
     def __init__(self, ip: str, port: int):
         self.ip = ip
@@ -63,17 +61,16 @@ class UserManager:
         print('The client starts')
         while True:
             try:
-                cmd, *args = click.prompt('', type=str, prompt_suffix='>').split()
+                cmd, *args = input('> ').split()
                 self.execute(cmd, args)
             except KeyboardInterrupt:
                 print('The client ends')
                 exit()
-            except click.exceptions.Abort:
-                print('\nThe client ends')
-                exit()
             except grpc.RpcError as e:
                 print(f'{e}')
             except KeyError as e:
+                print(f'{e}')
+            except TypeError as e:
                 print(f'{e}')
     
     def execute(self, cmd, *args):
