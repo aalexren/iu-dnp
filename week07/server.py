@@ -46,6 +46,8 @@ class Server:
         self.neighbours = neighbours
         self.last_vote_term = -1  # default vote
         self.leader_id = self.id  # default
+        self.commitIndex = 0
+        self.lastApplied = 0
         self.start()
 
     def start(self):
@@ -322,6 +324,12 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         print(f'Sleeping for {request.period} seconds.')
 
         return raft.SuspendResponse(**{})
+    
+    def SetVal(self, request, context):
+        return super().SetVal(request, context)
+    
+    def GetVal(self, request, context):
+        return super().GetVal(request, context)
 
 
 def run(handler: RaftServiceHandler):
