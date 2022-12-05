@@ -274,9 +274,6 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         #     self.term = candidate_term
         #     self.last_vote_term = candidate_term
         #     result = True
-        # if candidate_lastLogIndex > self.lastApplied:
-        #     self.last_vote_term = candidate_term
-        #     result = True
 
         if result and candidate_id != MY_ADDR.id:
             self.become_follower()
