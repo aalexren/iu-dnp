@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+service RaftService {
+    rpc RequestVote(RequestVoteRequest) returns (RequestVoteResponse);
+
+    rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
+
+    rpc GetLeader(GetLeaderRequest) returns (GetLeaderResponse);
+
+    rpc Suspend(SuspendRequest) returns (SuspendResponse);
+}
+
+message RequestVoteRequest{
+    // CANDIDATE term and id
+    int32 candidateTerm = 1;
+    int32 candidateId = 2;
+}
+
+message RequestVoteResponse{
+    int32 term = 1;
+    
+    // results of the vote
+    bool result = 2;
+}
+
+message AppendEntriesRequest {
+    // LEADER term and id
+    int32 leaderTerm = 1;
+    int32 leaderId = 2;
+}
+
+message AppendEntriesResponse {
+    int32 term = 1;
+    bool success = 2;
+}
+
+message GetLeaderRequest{}
+
+message GetLeaderResponse{
+    // LEADER id and address 
+    int32 leaderId = 1;
+    string address = 2;
+}
+
+message SuspendRequest{
+    // period to suspend the server
+    float period = 1;
+}
+
+message SuspendResponse{}
