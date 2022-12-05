@@ -44,10 +44,12 @@ class Server:
         self.id = id
         self.address = address
         self.neighbours = neighbours
+        self.neighbours_match_index = [0 for _ in self.neighbours]
         self.last_vote_term = -1  # default vote
         self.leader_id = self.id  # default
         self.commitIndex = 0
         self.lastApplied = 0
+        self.log_table = []
         self.start()
 
     def start(self):
@@ -149,6 +151,8 @@ class Server:
         request = {
             'candidateTerm': self.term,
             'candidateId': self.id,
+            'lastLogIndex': self.lastApplied,
+            'lastLogTerm': len(self.log_table) - 1
         }
         try:
             response = stub.RequestVote(
@@ -248,15 +252,31 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
 
         candidate_term = request.candidateTerm
         candidate_id = request.candidateId
-        result = False
+        candidate_lastLogIndex = request.lastLogIndex
+        candidate_lastLogTerm = request.lastLogTerm
+        result = True
+        # result = False
 
-        if candidate_term == self.term and self.last_vote_term < candidate_term:
-            self.last_vote_term = candidate_term
-            result = True
-        if candidate_term > self.term:
-            self.term = candidate_term
-            self.last_vote_term = candidate_term
-            result = True
+        if candidate_term < self.term:
+            result = False
+        if self.last_vote_term >= candidate_term:
+            result = False
+        if candidate_lastLogIndex < self.lastApplied:
+            result = False
+        if self.lastApplied != candidate_lastLogTerm:
+            result = False
+        
+
+        # if candidate_term == self.term and self.last_vote_term < candidate_term:
+        #     self.last_vote_term = candidate_term
+        #     result = True
+        # if candidate_term > self.term:
+        #     self.term = candidate_term
+        #     self.last_vote_term = candidate_term
+        #     result = True
+        # if candidate_lastLogIndex > self.lastApplied:
+        #     self.last_vote_term = candidate_term
+        #     result = True
 
         if result and candidate_id != MY_ADDR.id:
             self.become_follower()

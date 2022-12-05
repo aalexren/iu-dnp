@@ -18,6 +18,8 @@ message RequestVoteRequest {
     // CANDIDATE term and id
     int32 candidateTerm = 1;
     int32 candidateId = 2;
+    int32 lastLogIndex = 3;
+    int32 lastLogTerm = 4;
 }
 
 message RequestVoteResponse {
