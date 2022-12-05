@@ -2,12 +2,9 @@ import grpc
 import raft_pb2_grpc as raft_grpc
 import raft_pb2 as raft
 
-import threading
-import time
 import sys
 import random as rnd
 
-from typing import Union
 from enum import Enum
 from concurrent import futures
 from threading import Timer, Event, Lock, Thread
