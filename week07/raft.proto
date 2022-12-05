@@ -8,15 +8,19 @@ service RaftService {
     rpc GetLeader(GetLeaderRequest) returns (GetLeaderResponse);
 
     rpc Suspend(SuspendRequest) returns (SuspendResponse);
+
+    rpc SetVal(SetValRequest) returns (SetValResponse);
+
+    rpc GetVal(GetValRequest) returns (GetValResponse);
 }
 
-message RequestVoteRequest{
+message RequestVoteRequest {
     // CANDIDATE term and id
     int32 candidateTerm = 1;
     int32 candidateId = 2;
 }
 
-message RequestVoteResponse{
+message RequestVoteResponse {
     int32 term = 1;
     
     // results of the vote
@@ -34,17 +38,35 @@ message AppendEntriesResponse {
     bool success = 2;
 }
 
-message GetLeaderRequest{}
+message GetLeaderRequest {}
 
-message GetLeaderResponse{
+message GetLeaderResponse {
     // LEADER id and address 
     int32 leaderId = 1;
     string address = 2;
 }
 
-message SuspendRequest{
+message SuspendRequest {
     // period to suspend the server
     float period = 1;
 }
 
-message SuspendResponse{}
+message SuspendResponse {}
+
+message SetValRequest {
+    string key = 1;
+    int32 value = 2;
+}
+
+message SetValResponse {
+    bool success = 1;
+}
+
+message GetValRequest {
+    string key = 1;
+}
+
+message GetValResponse {
+    bool success = 1;
+    int32 value = 2;
+}

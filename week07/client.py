@@ -49,6 +49,34 @@ class User:
         except grpc.RpcError:
             raise grpc.RpcError('Server is unavailable!')
             
+    def set_val(self, key, value):
+        if not self.address:
+            raise KeyError('Specify the target address!')
+        request = {
+            'key': key,
+            'value': value
+        }
+        try:
+            response = self.stub.SetVal(
+                raft_pb2.SetValRequest(**request)
+            )
+        except grpc.RpcError:
+            raise grpc.RpcError('Server is unavailable!')
+
+    def get_val(self, key) -> str:
+        if not self.address:
+            raise KeyError('Specify the target address!')
+        request = {
+            'key': key
+        }
+        try:
+            response = self.stub.GetVal(
+                raft_pb2.SetValRequest(**request)
+            )
+            return f"{response.value}"
+        except grpc.RpcError:
+            raise grpc.RpcError('Server is unavailable!')
+
     def quit(self):
         raise KeyboardInterrupt
 
@@ -85,6 +113,8 @@ class UserManager:
             'connect': self.manager.connect,
             'getleader': self.manager.get_leader,
             'suspend': self.manager.suspend,
+            'setval': self.manager.set_val,
+            'getval': self.manager.get_val,
             'quit': self.manager.quit
         }
 
