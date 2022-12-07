@@ -44,12 +44,15 @@ class Server:
         self.id = id
         self.address = address
         self.neighbours = neighbours
-        self.neighbours_match_index = [0 for _ in self.neighbours]
+        # self.neighbours_match_index = [0 for _ in self.neighbours]
         self.last_vote_term = -1  # default vote
         self.leader_id = self.id  # default
         self.commitIndex = 0
         self.lastApplied = 0
         self.log_table = []
+        self.nextIndex = []
+        self.matchIndex = []
+        self.applied_entries = {}
         self.start()
 
     def start(self):
@@ -175,6 +178,9 @@ class Server:
         if self.status == Status.Suspended:
             return
 
+        self.nextIndex = [len(self.log_table)] * len(self.neighbours)
+        self.matchIndex = [0] * len(self.neighbours)
+
         if self.state == State.Candidate:
             self.update_state(State.Leader)
             self.heartbeat_timer()
@@ -187,10 +193,25 @@ class Server:
 
         channel = grpc.insecure_channel(f"{addr.ip}:{addr.port}")
         stub = raft_grpc.RaftServiceStub(channel)
-        request = {
-            'leaderTerm': self.term,
-            'leaderId': self.id
-        }
+        request = {}
+        if self.nextIndex[addr.id] <= len(self.log_table):
+            request = {
+                'leaderTerm': self.term,
+                'leaderId': self.id,
+                'prevLogIndex': self.nextIndex[addr.id]-2, # WARNING may result in an error change it to -1
+                'prevLogTerm': self.log_table[self.nextIndex[addr.id]-2]['term'], # same as above
+                'entries': [self.log_table[self.nextIndex[addr.id]-1]],
+                'leaderCommit': self.commitIndex
+            }
+        else: # send a normal heatbeat
+            request = {
+                'leaderTerm': self.term,
+                'leaderId': self.id,
+                'prevLogIndex': self.nextIndex[addr.id]-2, # WARNING may result in an error change it to -1
+                'prevLogTerm': self.log_table[self.nextIndex[addr.id]-2]['term'], # same as above
+                'entries': [],
+                'leaderCommit': self.commitIndex
+            }
         try:
             response = stub.AppendEntries(
                 raft.AppendEntriesRequest(**request)
@@ -199,7 +220,16 @@ class Server:
                 self.term = response.term
                 print(f"I am a follower. Term: {self.term}")
                 self.update_state(State.Follower)
-        except:
+            else:
+                if response.result:
+                    if self.nextIndex[addr.id] <= len(self.log_table):
+                        self.matchIndex[addr.id] = self.nextIndex[addr.id]
+                        self.nextIndex[addr.id] += 1
+                else:
+                    self.nextIndex[addr.id] -= 1
+                    self.matchIndex[addr.id] = min(self.matchIndex[addr.id], self.nextIndex[addr.id] - 1)
+                    
+        except: 
             pass
 
     def heartbeat_timer(self):
@@ -217,6 +247,26 @@ class Server:
 
         for t in pool:
             t.join()
+
+        self.nextIndex[self.id] = len(self.log_table)
+        self.matchIndex[self.id] = len(self.log_table) - 1
+
+        counter = 0
+        for element in self.matchIndex:
+            if element >= self.commitIndex: # collecting votes
+                counter += 1
+
+        majority = len(self.neighbours) // 2 
+        if counter > majority:
+            self.commitIndex += 1
+        
+        while self.commitIndex > self.lastApplied:
+                key = self.log_table[self.lastApplied]['update'][1]
+                value = self.log_table[self.lastApplied]['update'][2]
+                self.applied_entries[key] = value
+                self.lastApplied += 1
+
+            
 
         self.leader_timer = Timer(50 / 1000, self.heartbeat_timer)
         self.leader_timer.start()
@@ -263,8 +313,11 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             result = False
         if candidate_lastLogIndex < len(self.log_table):
             result = False
-        if self.lastApplied != candidate_lastLogTerm:
-            result = False
+        if candidate_lastLogIndex == len(self.log_table):
+            if self.log_table[-1]['term'] != candidate_lastLogIndex:
+                result = False
+        # if self.lastApplied != candidate_lastLogTerm:
+        #     result = False
         
 
         # if candidate_term == self.term and self.last_vote_term < candidate_term:
@@ -300,7 +353,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         leader_id = request.leaderId
         prevLogIndex = request.prevLogIndex
         prevLogTerm = request.prevLogTerm
-        entries = request.entries
+        entries = request.entries # This is a list of one entry, easier to handle
         leaderCommit = request.leaderCommit
         success = True if term >= self.term else False # first condition
         
@@ -309,16 +362,28 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         elif not self.log_table[prevLogIndex]:
             success = False
         
-        if prevLogIndex < len(self.log_table) - 1: # third condition, conflict
-            if self.log_table[prevLogIndex].term_number != prevLogTerm:
+        if prevLogIndex < len(self.log_table): # third condition, conflict
+            if self.log_table[prevLogIndex]['term'] != prevLogTerm:
                 del self.log_table[-(len(self.log_table) - prevLogIndex):] # it will delete the entry at prevLogIndex and all that follow it 
+        if len(entries) > 0: # Not a hearbeat 
+            entry = entries[0]
+            entry_term = entry.term
+            entry_update = entry.update
+            entry_flattened = {
+                'term': entry_term,
+                'update': entry_update
+            }
+            if entry_flattened not in self.log_table:
+                self.log_table.append(entry_flattened)
 
-        for entry in entries: # fourth condition
-            if entry not in self.log_table:
-                self.log_table.append(entry)
 
         if leaderCommit > self.commitIndex:
-            self.commitIndex = min(leaderCommit, entries[-1].index)
+            self.commitIndex = min(leaderCommit, len(self.log_table)-1)
+            while self.commitIndex > self.lastApplied:
+                key = self.log_table[self.lastApplied]['update'][1]
+                value = self.log_table[self.lastApplied]['update'][2]
+                self.applied_entries[key] = value
+                self.lastApplied += 1
 
         if success and self.id != leader_id:
             self.reset_timer()
@@ -363,13 +428,18 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         return raft.SuspendResponse(**{})
     
     def SetVal(self, request, context):
+        if self.status == Status.Suspended:
+            msg = 'The server is currently suspended. Try again later.'
+            context.set_details(msg)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            return raft.SetValResponse()
         key = request.key
         value = request.value
 
         if self.state == State.Leader:
             entry = {
                 'term': self.term,
-                'update': ('set', key, value)
+                'update': ['set', key, value]
             }
             self.log_table.append(entry)
             response = {
@@ -395,7 +465,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
                 }
                 return raft.SetValResponse(**response)
             except:
-                print('Leader is dead')
+                print('Leader is not available.')
                 # TODO: behave like when the leader is dead
         else:
             response = {
@@ -404,17 +474,22 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             return raft.SetValResponse(**response)
     
     def GetVal(self, request, context):
+        if self.status == Status.Suspended:
+            msg = 'The server is currently suspended. Try again later.'
+            context.set_details(msg)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            return raft.GetValResponse()
+            
         key = request.key
-        for entry in self.log_table:
-            if entry['update'][1] == key:
-                response = {
-                    'success': True,
-                    'value': entry['update'][2]
-                }
-                return raft.GetValResponse(**response)
+        if self.applied_entries[key]:
+            response = {
+                'success': True,
+                'value': self.applied_entries[key]
+            }
+            return raft.GetValResponse(**response)
         response = {
             'success': False,
-            'value': ''
+            'value': 'None'
         }
         return raft.GetValResponse(**response)
 

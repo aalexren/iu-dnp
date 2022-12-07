@@ -29,13 +29,19 @@ message RequestVoteResponse {
     bool result = 2;
 }
 
+message Entry {
+    int32 term = 1;
+    repeated string update = 2;
+
+}
+
 message AppendEntriesRequest {
     // LEADER term and id
     int32 leaderTerm = 1;
     int32 leaderId = 2;
     int32 prevLogIndex = 3;
     int32 prevLogTerm = 4;
-    repeated entries = 5;
+    repeated Entry entries = 5;
     int32 leaderCommit= 6;
 }
 
