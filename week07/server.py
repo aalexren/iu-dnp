@@ -261,7 +261,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             result = False
         if self.last_vote_term >= candidate_term:
             result = False
-        if candidate_lastLogIndex < self.lastApplied:
+        if candidate_lastLogIndex < len(self.log_table):
             result = False
         if self.lastApplied != candidate_lastLogTerm:
             result = False
@@ -298,7 +298,27 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
 
         term = request.leaderTerm
         leader_id = request.leaderId
-        success = True if term >= self.term else False
+        prevLogIndex = request.prevLogIndex
+        prevLogTerm = request.prevLogTerm
+        entries = request.entries
+        leaderCommit = request.leaderCommit
+        success = True if term >= self.term else False # first condition
+        
+        if prevLogIndex >= len(self.log_table): # second condition
+            success = False
+        elif not self.log_table[prevLogIndex]:
+            success = False
+        
+        if prevLogIndex < len(self.log_table) - 1: # third condition, conflict
+            if self.log_table[prevLogIndex].term_number != prevLogTerm:
+                del self.log_table[-(len(self.log_table) - prevLogIndex):] # it will delete the entry at prevLogIndex and all that follow it 
+
+        for entry in entries: # fourth condition
+            if entry not in self.log_table:
+                self.log_table.append(entry)
+
+        if leaderCommit > self.commitIndex:
+            self.commitIndex = min(leaderCommit, entries[-1].index)
 
         if success and self.id != leader_id:
             self.reset_timer()
@@ -343,10 +363,61 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         return raft.SuspendResponse(**{})
     
     def SetVal(self, request, context):
-        return super().SetVal(request, context)
+        key = request.key
+        value = request.value
+
+        if self.state == State.Leader:
+            entry = {
+                'term': self.term,
+                'update': ('set', key, value)
+            }
+            self.log_table.append(entry)
+            response = {
+                'success': True
+            }
+            return raft.SetValResponse(**response)
+
+        elif self.state == State.Follower:
+            # redirecting the message to the leader
+            leader_addr = get_addr(id)
+            channel = grpc.insecure_channel(f"{leader_addr.ip}:{leader_addr.port}")
+            stub = raft_grpc.RaftServiceStub(channel)
+            request = {
+                'key': key,
+                'value': value
+            }
+            try:
+                response = stub.SetVal(
+                    raft.SetValRequest(**request)
+                )
+                response = {
+                    'success': response.success
+                }
+                return raft.SetValResponse(**response)
+            except:
+                print('Leader is dead')
+                # TODO: behave like when the leader is dead
+        else:
+            response = {
+                'success': False
+            }
+            return raft.SetValResponse(**response)
     
     def GetVal(self, request, context):
-        return super().GetVal(request, context)
+        key = request.key
+        for entry in self.log_table:
+            if entry['update'][1] == key:
+                response = {
+                    'success': True,
+                    'value': entry['update'][2]
+                }
+                return raft.GetValResponse(**response)
+        response = {
+            'success': False,
+            'value': ''
+        }
+        return raft.GetValResponse(**response)
+
 
 
 def run(handler: RaftServiceHandler):
@@ -362,6 +433,14 @@ def run(handler: RaftServiceHandler):
     except KeyboardInterrupt:
         exit()
 
+
+def get_addr(id):
+    with open('config.conf') as conf:
+        while s := conf.readline():
+            n_id, *n_address = s.split()
+            if int(n_id) == id:
+                address = Address(int(n_id), n_address[0], int(n_address[1]))
+    return address
 
 if __name__ == "__main__":
     global MY_ADDR

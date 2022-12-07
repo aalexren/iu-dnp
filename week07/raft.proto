@@ -33,6 +33,10 @@ message AppendEntriesRequest {
     // LEADER term and id
     int32 leaderTerm = 1;
     int32 leaderId = 2;
+    int32 prevLogIndex = 3;
+    int32 prevLogTerm = 4;
+    repeated entries = 5;
+    int32 leaderCommit= 6;
 }
 
 message AppendEntriesResponse {
