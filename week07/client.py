@@ -71,7 +71,7 @@ class User:
         }
         try:
             response = self.stub.GetVal(
-                raft_pb2.SetValRequest(**request)
+                raft_pb2.GetValRequest(**request)
             )
             return f"{response.value}"
         except grpc.RpcError:
@@ -90,6 +90,7 @@ class UserManager:
         while True:
             try:
                 cmd, *args = input('> ').split()
+                print(cmd)
                 self.execute(cmd, args)
             except KeyboardInterrupt:
                 print('The client ends')
@@ -102,6 +103,7 @@ class UserManager:
                 print(f'{e}')
     
     def execute(self, cmd, *args):
+        print(cmd)
         if not cmd in self.commands:
             raise KeyError('Not a command!')
         response = self.commands[cmd](*args[0])

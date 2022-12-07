@@ -158,9 +158,7 @@ class Server:
             'lastLogTerm': len(self.log_table) - 1
         }
         try:
-            response = stub.RequestVote(
-                raft.RequestVoteRequest(**request)
-            )
+            response = stub.RequestVote(raft.RequestVoteRequest(**request))
             if response.term > self.term:
                 self.term = response.term
                 self.become_follower()
@@ -178,7 +176,7 @@ class Server:
         if self.status == Status.Suspended:
             return
 
-        self.nextIndex = [len(self.log_table)] * len(self.neighbours)
+        self.nextIndex = [len(self.log_table)+1] * len(self.neighbours)
         self.matchIndex = [0] * len(self.neighbours)
 
         if self.state == State.Candidate:
@@ -193,25 +191,24 @@ class Server:
 
         channel = grpc.insecure_channel(f"{addr.ip}:{addr.port}")
         stub = raft_grpc.RaftServiceStub(channel)
-        request = {}
+
+        prevLogIndex = self.nextIndex[addr.id] - 1
+        prevLogTerm = 0
+        entries = []
+
         if self.nextIndex[addr.id] <= len(self.log_table):
-            request = {
-                'leaderTerm': self.term,
-                'leaderId': self.id,
-                'prevLogIndex': self.nextIndex[addr.id]-2, # WARNING may result in an error change it to -1
-                'prevLogTerm': self.log_table[self.nextIndex[addr.id]-2]['term'], # same as above
-                'entries': [self.log_table[self.nextIndex[addr.id]-1]],
-                'leaderCommit': self.commitIndex
-            }
-        else: # send a normal heatbeat
-            request = {
-                'leaderTerm': self.term,
-                'leaderId': self.id,
-                'prevLogIndex': self.nextIndex[addr.id]-2, # WARNING may result in an error change it to -1
-                'prevLogTerm': self.log_table[self.nextIndex[addr.id]-2]['term'], # same as above
-                'entries': [],
-                'leaderCommit': self.commitIndex
-            }
+            entries = [self.log_table[self.nextIndex[addr.id]-1]]
+        if self.nextIndex[addr.id] > 1:
+            prevLogTerm = self.log_table[self.nextIndex[addr.id]-2]['term']
+
+        request = {
+            'leaderTerm': self.term,
+            'leaderId': self.id,
+            'prevLogIndex': prevLogIndex, # WARNING may result in an error change it to -1
+            'prevLogTerm': prevLogTerm, # same as above
+            'entries': entries,
+            'leaderCommit': self.commitIndex
+        }
         try:
             response = stub.AppendEntries(
                 raft.AppendEntriesRequest(**request)
@@ -221,7 +218,7 @@ class Server:
                 print(f"I am a follower. Term: {self.term}")
                 self.update_state(State.Follower)
             else:
-                if response.result:
+                if response.success:
                     if self.nextIndex[addr.id] <= len(self.log_table):
                         self.matchIndex[addr.id] = self.nextIndex[addr.id]
                         self.nextIndex[addr.id] += 1
@@ -248,12 +245,12 @@ class Server:
         for t in pool:
             t.join()
 
-        self.nextIndex[self.id] = len(self.log_table)
-        self.matchIndex[self.id] = len(self.log_table) - 1
+        self.nextIndex[self.id] = len(self.log_table) + 1
+        self.matchIndex[self.id] = len(self.log_table) 
 
         counter = 0
         for element in self.matchIndex:
-            if element >= self.commitIndex: # collecting votes
+            if element >= self.commitIndex + 1: # collecting votes
                 counter += 1
 
         majority = len(self.neighbours) // 2 
@@ -314,8 +311,9 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         if candidate_lastLogIndex < len(self.log_table):
             result = False
         if candidate_lastLogIndex == len(self.log_table):
-            if self.log_table[-1]['term'] != candidate_lastLogIndex:
-                result = False
+            if len(self.log_table) > 0:
+                if self.log_table[-1]['term'] != candidate_lastLogIndex:
+                    result = False
         # if self.lastApplied != candidate_lastLogTerm:
         #     result = False
         
@@ -356,15 +354,20 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         entries = request.entries # This is a list of one entry, easier to handle
         leaderCommit = request.leaderCommit
         success = True if term >= self.term else False # first condition
+        if term > self.term:
+            self.term = term
+            self.become_follower()
+            self.leader_id = leader_id
         
-        if prevLogIndex >= len(self.log_table): # second condition
+        if prevLogIndex > len(self.log_table): # second condition
             success = False
-        elif not self.log_table[prevLogIndex]:
-            success = False
+        # elif not self.log_table[prevLogIndex]:
+        #     success = False
         
-        if prevLogIndex < len(self.log_table): # third condition, conflict
-            if self.log_table[prevLogIndex]['term'] != prevLogTerm:
-                del self.log_table[-(len(self.log_table) - prevLogIndex):] # it will delete the entry at prevLogIndex and all that follow it 
+        if prevLogIndex <= len(self.log_table): # third condition, conflict
+            # if self.log_table[prevLogIndex-1]['term'] != prevLogTerm:
+            self.log_table = self.log_table[:prevLogIndex]
+                
         if len(entries) > 0: # Not a hearbeat 
             entry = entries[0]
             entry_term = entry.term
@@ -378,18 +381,15 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
 
 
         if leaderCommit > self.commitIndex:
-            self.commitIndex = min(leaderCommit, len(self.log_table)-1)
+            self.commitIndex = min(leaderCommit, len(self.log_table))
             while self.commitIndex > self.lastApplied:
                 key = self.log_table[self.lastApplied]['update'][1]
                 value = self.log_table[self.lastApplied]['update'][2]
                 self.applied_entries[key] = value
                 self.lastApplied += 1
 
-        if success and self.id != leader_id:
+        if self.state == State.Follower:
             self.reset_timer()
-            if self.state != State.Follower:
-                self.become_follower()
-            self.leader_id = leader_id
 
         response = {
             'term': self.term,
