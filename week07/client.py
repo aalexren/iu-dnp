@@ -90,7 +90,6 @@ class UserManager:
         while True:
             try:
                 cmd, *args = input('> ').split()
-                print(cmd)
                 self.execute(cmd, args)
             except KeyboardInterrupt:
                 print('The client ends')
@@ -103,7 +102,6 @@ class UserManager:
                 print(f'{e}')
     
     def execute(self, cmd, *args):
-        print(cmd)
         if not cmd in self.commands:
             raise KeyError('Not a command!')
         response = self.commands[cmd](*args[0])
