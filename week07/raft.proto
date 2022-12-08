@@ -29,10 +29,20 @@ message RequestVoteResponse {
     bool result = 2;
 }
 
+message Entry {
+    int32 term = 1;
+    repeated string update = 2;
+
+}
+
 message AppendEntriesRequest {
     // LEADER term and id
     int32 leaderTerm = 1;
     int32 leaderId = 2;
+    int32 prevLogIndex = 3;
+    int32 prevLogTerm = 4;
+    repeated Entry entries = 5;
+    int32 leaderCommit= 6;
 }
 
 message AppendEntriesResponse {
@@ -57,7 +67,7 @@ message SuspendResponse {}
 
 message SetValRequest {
     string key = 1;
-    int32 value = 2;
+    string value = 2;
 }
 
 message SetValResponse {
@@ -70,5 +80,5 @@ message GetValRequest {
 
 message GetValResponse {
     bool success = 1;
-    int32 value = 2;
+    string value = 2;
 }

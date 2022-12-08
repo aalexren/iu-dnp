@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nraft.proto\"@\n\x12RequestVoteRequest\x12\x15\n\rcandidateTerm\x18\x01 \x01(\x05\x12\x13\n\x0b\x63\x61ndidateId\x18\x02 \x01(\x05\"3\n\x13RequestVoteResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0e\n\x06result\x18\x02 \x01(\x08\"<\n\x14\x41ppendEntriesRequest\x12\x12\n\nleaderTerm\x18\x01 \x01(\x05\x12\x10\n\x08leaderId\x18\x02 \x01(\x05\"6\n\x15\x41ppendEntriesResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0f\n\x07success\x18\x02 \x01(\x08\"\x12\n\x10GetLeaderRequest\"6\n\x11GetLeaderResponse\x12\x10\n\x08leaderId\x18\x01 \x01(\x05\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x0eSuspendRequest\x12\x0e\n\x06period\x18\x01 \x01(\x02\"\x11\n\x0fSuspendResponse\"+\n\rSetValRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05\"!\n\x0eSetValResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x1c\n\rGetValRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"0\n\x0eGetValResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\r\n\x05value\x18\x02 \x01(\x05\x32\xbf\x02\n\x0bRaftService\x12\x38\n\x0bRequestVote\x12\x13.RequestVoteRequest\x1a\x14.RequestVoteResponse\x12>\n\rAppendEntries\x12\x15.AppendEntriesRequest\x1a\x16.AppendEntriesResponse\x12\x32\n\tGetLeader\x12\x11.GetLeaderRequest\x1a\x12.GetLeaderResponse\x12,\n\x07Suspend\x12\x0f.SuspendRequest\x1a\x10.SuspendResponse\x12)\n\x06SetVal\x12\x0e.SetValRequest\x1a\x0f.SetValResponse\x12)\n\x06GetVal\x12\x0e.GetValRequest\x1a\x0f.GetValResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nraft.proto\"k\n\x12RequestVoteRequest\x12\x15\n\rcandidateTerm\x18\x01 \x01(\x05\x12\x13\n\x0b\x63\x61ndidateId\x18\x02 \x01(\x05\x12\x14\n\x0clastLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0blastLogTerm\x18\x04 \x01(\x05\"3\n\x13RequestVoteResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0e\n\x06result\x18\x02 \x01(\x08\"%\n\x05\x45ntry\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0e\n\x06update\x18\x02 \x03(\t\"\x96\x01\n\x14\x41ppendEntriesRequest\x12\x12\n\nleaderTerm\x18\x01 \x01(\x05\x12\x10\n\x08leaderId\x18\x02 \x01(\x05\x12\x14\n\x0cprevLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0bprevLogTerm\x18\x04 \x01(\x05\x12\x17\n\x07\x65ntries\x18\x05 \x03(\x0b\x32\x06.Entry\x12\x14\n\x0cleaderCommit\x18\x06 \x01(\x05\"6\n\x15\x41ppendEntriesResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0f\n\x07success\x18\x02 \x01(\x08\"\x12\n\x10GetLeaderRequest\"6\n\x11GetLeaderResponse\x12\x10\n\x08leaderId\x18\x01 \x01(\x05\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x0eSuspendRequest\x12\x0e\n\x06period\x18\x01 \x01(\x02\"\x11\n\x0fSuspendResponse\"+\n\rSetValRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"!\n\x0eSetValResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x1c\n\rGetValRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"0\n\x0eGetValResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\r\n\x05value\x18\x02 \x01(\t2\xbf\x02\n\x0bRaftService\x12\x38\n\x0bRequestVote\x12\x13.RequestVoteRequest\x1a\x14.RequestVoteResponse\x12>\n\rAppendEntries\x12\x15.AppendEntriesRequest\x1a\x16.AppendEntriesResponse\x12\x32\n\tGetLeader\x12\x11.GetLeaderRequest\x1a\x12.GetLeaderResponse\x12,\n\x07Suspend\x12\x0f.SuspendRequest\x1a\x10.SuspendResponse\x12)\n\x06SetVal\x12\x0e.SetValRequest\x1a\x0f.SetValResponse\x12)\n\x06GetVal\x12\x0e.GetValRequest\x1a\x0f.GetValResponseb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'raft_pb2', globals())
@@ -21,29 +21,31 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _REQUESTVOTEREQUEST._serialized_start=14
-  _REQUESTVOTEREQUEST._serialized_end=78
-  _REQUESTVOTERESPONSE._serialized_start=80
-  _REQUESTVOTERESPONSE._serialized_end=131
-  _APPENDENTRIESREQUEST._serialized_start=133
-  _APPENDENTRIESREQUEST._serialized_end=193
-  _APPENDENTRIESRESPONSE._serialized_start=195
-  _APPENDENTRIESRESPONSE._serialized_end=249
-  _GETLEADERREQUEST._serialized_start=251
-  _GETLEADERREQUEST._serialized_end=269
-  _GETLEADERRESPONSE._serialized_start=271
-  _GETLEADERRESPONSE._serialized_end=325
-  _SUSPENDREQUEST._serialized_start=327
-  _SUSPENDREQUEST._serialized_end=359
-  _SUSPENDRESPONSE._serialized_start=361
-  _SUSPENDRESPONSE._serialized_end=378
-  _SETVALREQUEST._serialized_start=380
-  _SETVALREQUEST._serialized_end=423
-  _SETVALRESPONSE._serialized_start=425
-  _SETVALRESPONSE._serialized_end=458
-  _GETVALREQUEST._serialized_start=460
-  _GETVALREQUEST._serialized_end=488
-  _GETVALRESPONSE._serialized_start=490
-  _GETVALRESPONSE._serialized_end=538
-  _RAFTSERVICE._serialized_start=541
-  _RAFTSERVICE._serialized_end=860
+  _REQUESTVOTEREQUEST._serialized_end=121
+  _REQUESTVOTERESPONSE._serialized_start=123
+  _REQUESTVOTERESPONSE._serialized_end=174
+  _ENTRY._serialized_start=176
+  _ENTRY._serialized_end=213
+  _APPENDENTRIESREQUEST._serialized_start=216
+  _APPENDENTRIESREQUEST._serialized_end=366
+  _APPENDENTRIESRESPONSE._serialized_start=368
+  _APPENDENTRIESRESPONSE._serialized_end=422
+  _GETLEADERREQUEST._serialized_start=424
+  _GETLEADERREQUEST._serialized_end=442
+  _GETLEADERRESPONSE._serialized_start=444
+  _GETLEADERRESPONSE._serialized_end=498
+  _SUSPENDREQUEST._serialized_start=500
+  _SUSPENDREQUEST._serialized_end=532
+  _SUSPENDRESPONSE._serialized_start=534
+  _SUSPENDRESPONSE._serialized_end=551
+  _SETVALREQUEST._serialized_start=553
+  _SETVALREQUEST._serialized_end=596
+  _SETVALRESPONSE._serialized_start=598
+  _SETVALRESPONSE._serialized_end=631
+  _GETVALREQUEST._serialized_start=633
+  _GETVALREQUEST._serialized_end=661
+  _GETVALRESPONSE._serialized_start=663
+  _GETVALRESPONSE._serialized_end=711
+  _RAFTSERVICE._serialized_start=714
+  _RAFTSERVICE._serialized_end=1033
 # @@protoc_insertion_point(module_scope)
