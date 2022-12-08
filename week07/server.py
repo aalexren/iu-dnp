@@ -44,7 +44,6 @@ class Server:
         self.id = id
         self.address = address
         self.neighbours = neighbours
-        # self.neighbours_match_index = [0 for _ in self.neighbours]
         self.last_vote_term = -1  # default vote
         self.leader_id = self.id  # default
         self.commitIndex = 0
@@ -302,7 +301,6 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         candidate_lastLogIndex = request.lastLogIndex
         candidate_lastLogTerm = request.lastLogTerm
         result = True
-        # result = False
 
         if candidate_term < self.term:
             result = False
@@ -314,17 +312,6 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             if len(self.log_table) > 0:
                 if self.log_table[-1]['term'] != candidate_lastLogIndex:
                     result = False
-        # if self.lastApplied != candidate_lastLogTerm:
-        #     result = False
-        
-
-        # if candidate_term == self.term and self.last_vote_term < candidate_term:
-        #     self.last_vote_term = candidate_term
-        #     result = True
-        # if candidate_term > self.term:
-        #     self.term = candidate_term
-        #     self.last_vote_term = candidate_term
-        #     result = True
 
         if result and candidate_id != MY_ADDR.id:
             self.become_follower()
@@ -474,6 +461,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             return raft.SetValResponse(**response)
     
     def GetVal(self, request, context):
+        print(request)
         if self.status == Status.Suspended:
             msg = 'The server is currently suspended. Try again later.'
             context.set_details(msg)
@@ -481,16 +469,16 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
             return raft.GetValResponse()
             
         key = request.key
-        if self.applied_entries[key]:
+        if key in self.applied_entries:
             response = {
                 'success': True,
                 'value': self.applied_entries[key]
             }
-            return raft.GetValResponse(**response)
-        response = {
-            'success': False,
-            'value': 'None'
-        }
+        else:
+            response = {
+                'success': False,
+                'value': 'None'
+            }
         return raft.GetValResponse(**response)
 
 

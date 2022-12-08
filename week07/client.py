@@ -100,6 +100,8 @@ class UserManager:
                 print(f'{e}')
             except TypeError as e:
                 print(f'{e}')
+            except ValueError as e:
+                print(f'{e}')
     
     def execute(self, cmd, *args):
         if not cmd in self.commands:
