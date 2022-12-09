@@ -255,7 +255,9 @@ class Server:
         majority = len(self.neighbours) // 2 
         if counter > majority:
             self.commitIndex += 1
-        
+        print('hello')
+        print(self.commitIndex)
+        print(self.lastApplied)
         while self.commitIndex > self.lastApplied:
                 key = self.log_table[self.lastApplied]['update'][1]
                 value = self.log_table[self.lastApplied]['update'][2]
@@ -436,7 +438,7 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
 
         elif self.state == State.Follower:
             # redirecting the message to the leader
-            leader_addr = get_addr(id)
+            leader_addr = get_addr(self.leader_id)
             channel = grpc.insecure_channel(f"{leader_addr.ip}:{leader_addr.port}")
             stub = raft_grpc.RaftServiceStub(channel)
             request = {
@@ -453,7 +455,6 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
                 return raft.SetValResponse(**response)
             except:
                 print('Leader is not available.')
-                # TODO: behave like when the leader is dead
         else:
             response = {
                 'success': False
