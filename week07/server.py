@@ -252,12 +252,9 @@ class Server:
             if element >= self.commitIndex + 1: # collecting votes
                 counter += 1
 
-        majority = len(self.neighbours) // 2 
+        majority = len(self.neighbours) // 2 + 1
         if counter > majority:
             self.commitIndex += 1
-        print('hello')
-        print(self.commitIndex)
-        print(self.lastApplied)
         while self.commitIndex > self.lastApplied:
                 key = self.log_table[self.lastApplied]['update'][1]
                 value = self.log_table[self.lastApplied]['update'][2]
@@ -350,11 +347,8 @@ class RaftServiceHandler(raft_grpc.RaftServiceServicer, Server):
         
         if prevLogIndex > len(self.log_table): # second condition
             success = False
-        # elif not self.log_table[prevLogIndex]:
-        #     success = False
         
         if prevLogIndex <= len(self.log_table): # third condition, conflict
-            # if self.log_table[prevLogIndex-1]['term'] != prevLogTerm:
             self.log_table = self.log_table[:prevLogIndex]
                 
         if len(entries) > 0: # Not a hearbeat 
