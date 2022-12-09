@@ -252,7 +252,7 @@ class Server:
             if element >= self.commitIndex + 1: # collecting votes
                 counter += 1
 
-        majority = len(self.neighbours) // 2 + 1
+        majority = len(self.neighbours) // 2
         if counter > majority:
             self.commitIndex += 1
         while self.commitIndex > self.lastApplied:
